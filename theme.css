@@ -1,0 +1,25 @@
+/* ZCDE — "blueprint": drafting blue, pencil yellow; blueprint grid motif. */
+:root {
+  --bg: #f2f6fb; --surface: #ffffff; --surface-2: #e3ebf5; --ink: #0c2340; --ink-2: #46607f; --ink-3: #597092; --line: #d3deeb;
+  --accent: #1d5fa8; --accent-ink: #ffffff; --accent-soft: #dfeaf7; --accent-2: #9c5e0c; --accent-2-soft: #f6e9d4;
+  --good: #1d7a4b; --good-soft: #dcf1e4; --bad: #b42a2a; --bad-soft: #f9e2e0; --warn: #b77800; --warn-soft: #fbefd3; --on-status: #ffffff;
+  --hero-bg: #0b3160; --hero-ink: #eef5fd; --hero-ink-2: #a6c0e0; --hero-accent: #ffd166;
+  --motif: linear-gradient(rgba(255,255,255,.07) 1px, transparent 1px) 0 0 / 20px 20px, linear-gradient(90deg, rgba(255,255,255,.07) 1px, transparent 1px) 0 0 / 20px 20px, linear-gradient(rgba(255,255,255,.13) 1px, transparent 1px) 0 0 / 100px 100px, linear-gradient(90deg, rgba(255,255,255,.13) 1px, transparent 1px) 0 0 / 100px 100px;
+  --sg-line: #3d6aa0; --sg-accent: #ffd166; --sg-accent-2: #9fd3ff; --sg-node: #0d3a72; --sg-ink: #eef5fd; --sg-ink-2: #a6c0e0;
+  --f-display: "Archivo", "IBM Plex Sans", "Segoe UI", sans-serif; --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; --f-mono: "IBM Plex Mono", Consolas, monospace;
+  --radius: 16px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+  --bg: #06121f; --surface: #0c1c2e; --surface-2: #13263c; --ink: #e6eef8; --ink-2: #a3b8d0; --ink-3: #6f879f; --line: #1f3550;
+  --accent: #6fb0ff; --accent-ink: #04152a; --accent-soft: #12304f; --accent-2: #ffd166; --accent-2-soft: #3a2e10;
+  --good: #5bd39a; --good-soft: #10301f; --bad: #ff7a7a; --bad-soft: #3a1616; --warn: #f2b84c; --warn-soft: #3a2c10; --on-status: #06121f;
+  color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #06121f; --surface: #0c1c2e; --surface-2: #13263c; --ink: #e6eef8; --ink-2: #a3b8d0; --ink-3: #6f879f; --line: #1f3550;
+  --accent: #6fb0ff; --accent-ink: #04152a; --accent-soft: #12304f; --accent-2: #ffd166; --accent-2-soft: #3a2e10;
+  --good: #5bd39a; --good-soft: #10301f; --bad: #ff7a7a; --bad-soft: #3a1616; --warn: #f2b84c; --warn-soft: #3a2c10; --on-status: #06121f;
+  color-scheme: dark;
+}
