@@ -17,7 +17,7 @@ TRACK.modules.push({
    "id": "m5-l1",
    "title": "Failure Domains & Blast Radius",
    "subtitle": "Decide what is allowed to break together, and make everything else break apart",
-   "minutes": 24,
+   "minutes": 27,
    "objectives": [
     "Define failure domains and blast radius and locate them in an existing design",
     "Identify hidden shared fate across physical, logical, software and human dependencies",
@@ -115,6 +115,118 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "topology",
+     "title": "Two independent sites with one hidden shared dependency",
+     "nodes": [
+      {
+       "id": "wan",
+       "kind": "cloud",
+       "label": "Two carriers",
+       "x": 3.5,
+       "y": 0,
+       "sub": "Diverse ducts verified"
+      },
+      {
+       "id": "fa",
+       "kind": "l3switch",
+       "label": "Site A fabric",
+       "x": 1,
+       "y": 2
+      },
+      {
+       "id": "fb",
+       "kind": "l3switch",
+       "label": "Site B fabric",
+       "x": 6,
+       "y": 2
+      },
+      {
+       "id": "aa",
+       "kind": "server",
+       "label": "Apps, Site A",
+       "x": 0,
+       "y": 4
+      },
+      {
+       "id": "ab",
+       "kind": "server",
+       "label": "Apps, Site B",
+       "x": 7,
+       "y": 4
+      },
+      {
+       "id": "dns",
+       "kind": "db",
+       "label": "DNS + directory",
+       "x": 2.5,
+       "y": 5,
+       "sub": "Hosted only in Site A"
+      }
+     ],
+     "links": [
+      {
+       "a": "wan",
+       "b": "fa"
+      },
+      {
+       "a": "wan",
+       "b": "fb"
+      },
+      {
+       "a": "fa",
+       "b": "fb",
+       "label": "routed DCI"
+      },
+      {
+       "a": "fa",
+       "b": "aa"
+      },
+      {
+       "a": "fb",
+       "b": "ab"
+      },
+      {
+       "a": "aa",
+       "b": "dns",
+       "label": "auth, names",
+       "style": "dashed"
+      },
+      {
+       "a": "ab",
+       "b": "dns",
+       "label": "auth, names",
+       "style": "attack"
+      }
+     ],
+     "zones": [
+      {
+       "label": "Site A",
+       "x": 0,
+       "y": 2,
+       "w": 3,
+       "h": 3,
+       "tone": "good"
+      },
+      {
+       "label": "Site B",
+       "x": 5,
+       "y": 2,
+       "w": 3,
+       "h": 3,
+       "tone": "good"
+      },
+      {
+       "label": "Shared fate",
+       "x": 2.5,
+       "y": 5,
+       "w": 1,
+       "h": 1,
+       "tone": "bad"
+      }
+     ],
+     "caption": "Every network element is paired across two sites, yet both sites resolve names and authenticate against services that live only in Site A. The red zone is a single point of failure for the whole service, however many boxes are duplicated."
+    },
+    {
      "type": "text",
      "text": "Layer 2 is the classic oversized failure domain. A loop, a broadcast storm or a flapping MAC address can consume every link and every control plane in the VLAN, wherever it is stretched. Routed boundaries stop that propagation, and summarisation at area or level borders stops routing instability from flooding beyond its origin. In the control plane, separate route-reflector clusters or regional instances keep a software fault in one region from reaching the next."
     },
@@ -201,6 +313,42 @@ TRACK.modules.push({
        "text": "Write the decision and its rationale into the design document and risk register so it survives staff turnover."
       }
      ]
+    },
+    {
+     "type": "matrix",
+     "title": "Contain, duplicate or accept",
+     "x": "Likelihood of the fault",
+     "y": "Blast radius (business impact)",
+     "quadrants": [
+      {
+       "title": "Duplicate: build an independent second domain",
+       "items": [
+        "Site loss",
+        "Controller cluster failure"
+       ]
+      },
+      {
+       "title": "Design priority: contain and duplicate",
+       "items": [
+        "Bad change pushed everywhere",
+        "Shared-duct cut"
+       ]
+      },
+      {
+       "title": "Accept with a named owner",
+       "items": [
+        "Single kiosk switch failure"
+       ]
+      },
+      {
+       "title": "Contain: shrink the domain, automate recovery",
+       "items": [
+        "Access-port loops",
+        "Branch link flaps"
+       ]
+      }
+     ],
+     "caption": "Place each mapped fault by how likely it is and how much of the business it stops. The quadrant suggests the default response; the decision and its owner still go into the risk register."
     },
     {
      "type": "callout",
@@ -296,6 +444,17 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Redundancy only helps when the redundant parts fail independently — ask what breaks together",
+      "Look for shared fate in six places: physical, logical, control and management, software, operational and provider",
+      "Any dependency under every redundant path is a single point of failure",
+      "Cells, routed boundaries and separate control-plane instances cap blast radius",
+      "Express blast-radius targets in business terms and test designs against them"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -361,7 +520,7 @@ TRACK.modules.push({
    "id": "m5-l2",
    "title": "Redundancy Models & Availability Mathematics",
    "subtitle": "Turn 'it must never go down' into numbers you can design, cost and defend",
-   "minutes": 30,
+   "minutes": 33,
    "objectives": [
     "Compare N+1, 2N and active/active versus active/standby redundancy models",
     "Calculate serial, parallel and MTBF/MTTR-based availability and convert it to downtime",
@@ -469,6 +628,85 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "topology",
+     "title": "A branch-to-data-centre path: serial and parallel elements",
+     "nodes": [
+      {
+       "id": "br",
+       "kind": "router",
+       "label": "Branch router",
+       "x": 0,
+       "y": 2,
+       "sub": "99.99%"
+      },
+      {
+       "id": "fw",
+       "kind": "firewall",
+       "label": "Firewall",
+       "x": 2,
+       "y": 2,
+       "sub": "99.95%"
+      },
+      {
+       "id": "c1",
+       "kind": "cloud",
+       "label": "Circuit 1",
+       "x": 4,
+       "y": 1,
+       "sub": "99.9%"
+      },
+      {
+       "id": "c2",
+       "kind": "cloud",
+       "label": "Circuit 2",
+       "x": 4,
+       "y": 3,
+       "sub": "99.9%"
+      },
+      {
+       "id": "dc",
+       "kind": "server",
+       "label": "Data centre",
+       "x": 6.5,
+       "y": 2
+      }
+     ],
+     "links": [
+      {
+       "a": "br",
+       "b": "fw",
+       "label": "serial"
+      },
+      {
+       "a": "fw",
+       "b": "c1"
+      },
+      {
+       "a": "fw",
+       "b": "c2"
+      },
+      {
+       "a": "c1",
+       "b": "dc"
+      },
+      {
+       "a": "c2",
+       "b": "dc"
+      }
+     ],
+     "zones": [
+      {
+       "label": "Shared duct",
+       "x": 4,
+       "y": 1,
+       "w": 1,
+       "h": 3,
+       "tone": "warn"
+      }
+     ],
+     "caption": "The router and firewall are serial — each must work. The two circuits are parallel, but only as independent as their routes: the shaded zone marks the shared duct whose common-cause failures (β) cap what the pair can deliver."
+    },
+    {
      "type": "table",
      "title": "The nines in minutes",
      "head": [
@@ -525,6 +763,28 @@ TRACK.modules.push({
        "text": "Pair the firewalls and routers as well, and verify circuit diversity to push β down. The result is now limited by common-cause factors and failover behaviour, which is exactly where design attention should go."
       }
      ]
+    },
+    {
+     "type": "chart",
+     "title": "Annual downtime at each step of the worked example",
+     "kind": "bar",
+     "labels": [
+      "Serial baseline",
+      "Second circuit (independent)",
+      "Second circuit, β = 10%"
+     ],
+     "series": [
+      {
+       "name": "Downtime per year",
+       "values": [
+        840,
+        316,
+        368
+       ]
+      }
+     ],
+     "yLabel": "Minutes per year",
+     "caption": "Computed from the worked example. A naive second circuit appears to cut downtime by more than half, but with 10% common-cause failures part of that gain disappears — and the serial firewall then dominates what remains."
     },
     {
      "type": "callout",
@@ -646,6 +906,17 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Turn adjectives into numbers: availability, minutes of downtime per year and the cost of each extra nine",
+      "Serial chains multiply; parallel paths help only as far as failures are independent and detected",
+      "Common-cause failures and failover coverage usually dominate real availability",
+      "MTTR is a design lever: spares, remote hands and automation can beat duplication",
+      "Keep load-sharing members under their survivable ceiling, (n − f) ÷ n"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -711,7 +982,7 @@ TRACK.modules.push({
    "id": "m5-l3",
    "title": "Convergence Budgets & Fast Recovery",
    "subtitle": "Engineer recovery time component by component instead of hoping the protocol is fast enough",
-   "minutes": 28,
+   "minutes": 31,
    "objectives": [
     "Decompose convergence into detection, propagation, computation and FIB update",
     "Choose between fast detection, precomputed backups and prefix-independent convergence",
@@ -855,6 +1126,61 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "sequence",
+     "title": "BFD detection and a pre-installed backup across a carrier service",
+     "actors": [
+      "R1",
+      "R2 (far end)",
+      "N (backup neighbour)"
+     ],
+     "steps": [
+      {
+       "from": 0,
+       "to": 1,
+       "label": "BFD control packets every 50 ms"
+      },
+      {
+       "from": 1,
+       "to": 0,
+       "label": "BFD replies",
+       "reply": true
+      },
+      {
+       "from": 1,
+       "to": 1,
+       "label": "R2 fails behind the carrier",
+       "note": "R1 port stays up"
+      },
+      {
+       "from": 0,
+       "to": 0,
+       "label": "3 packets missed: down at ≈150 ms"
+      },
+      {
+       "from": 0,
+       "to": 0,
+       "label": "Switch FIB to pre-installed LFA"
+      },
+      {
+       "from": 0,
+       "to": 2,
+       "label": "Traffic forwarded via N"
+      },
+      {
+       "from": 0,
+       "to": 2,
+       "label": "Flood updated LSA"
+      },
+      {
+       "from": 2,
+       "to": 2,
+       "label": "SPF and FIB update",
+       "note": "network converges behind it"
+      }
+     ],
+     "caption": "The carrier keeps R1's port up, so only BFD notices the far-end failure. Traffic moves to the precomputed alternate at about 160 ms; flooding and SPF happen afterwards without adding to the loss."
+    },
+    {
      "type": "callout",
      "kind": "insight",
      "text": "While routers converge at slightly different moments, packets can loop briefly between a router that has updated and one that has not. On busy links this causes measurable loss even after the protected failure itself is handled. Ordered FIB updates and segment-routing-based micro-loop avoidance are design options where the loss budget is tight.",
@@ -889,6 +1215,41 @@ TRACK.modules.push({
      "kind": "pro",
      "text": "Where the topology offers **redundant paths**, it is usually better to detect the failure fast and reroute around the failed node than to keep forwarding through it on stale state. Where a node is a **single point of attachment** — a single-homed customer edge, a lone aggregation router — preserving forwarding with NSR or GR is often the better trade-off. Decide per role, not per network.",
      "title": "The design rule of thumb"
+    },
+    {
+     "type": "matrix",
+     "title": "Preserve forwarding or reroute around the node?",
+     "x": "Alternative paths around the node",
+     "y": "Exposure to control-plane restarts",
+     "quadrants": [
+      {
+       "title": "NSR first; GR as a fallback",
+       "items": [
+        "Single-homed provider edge",
+        "Lone aggregation router"
+       ]
+      },
+      {
+       "title": "Fast detection + FRR; drain before planned work",
+       "items": [
+        "Core routers",
+        "Spines"
+       ]
+      },
+      {
+       "title": "GR helper is usually enough",
+       "items": [
+        "Small stub router"
+       ]
+      },
+      {
+       "title": "BFD + FRR; GR optional",
+       "items": [
+        "Redundant leaf pairs"
+       ]
+      }
+     ],
+     "caption": "Decide per role. Where alternative paths exist, fast detection and reroute is usually safer than forwarding on stale state; where a node is the only attachment, preserving forwarding through a restart is the priority."
     },
     {
      "type": "scenario",
@@ -976,6 +1337,16 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Translate application tolerance into a convergence budget, then allocate it to detect, propagate, compute and FIB update",
+      "BFD detects failures that carrier services hide from the port; validate timers against the platform",
+      "Precomputed backups (LFA, TI-LFA) and prefix-independent convergence remove most of the budget from the loss window",
+      "Choose NSR or graceful restart for single points of attachment, fast reroute where paths are redundant"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -1041,7 +1412,7 @@ TRACK.modules.push({
    "id": "m5-l4",
    "title": "Maintenance & Change Design",
    "subtitle": "Most outages are self-inflicted — design the network so that change is routine and safe",
-   "minutes": 24,
+   "minutes": 27,
    "objectives": [
     "Design for maintenance so that planned work never reduces protection below target",
     "Use drain, cost-out and graceful shutdown techniques to remove traffic before work",
@@ -1137,6 +1508,56 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "sequence",
+     "title": "Draining a BGP edge router with graceful shutdown",
+     "actors": [
+      "R2 (to be upgraded)",
+      "Peer router",
+      "Alternative path"
+     ],
+     "steps": [
+      {
+       "from": 0,
+       "to": 1,
+       "label": "Re-advertise routes with 65535:0",
+       "note": "graceful-shutdown community"
+      },
+      {
+       "from": 1,
+       "to": 1,
+       "label": "Map community to low local-pref"
+      },
+      {
+       "from": 1,
+       "to": 2,
+       "label": "Traffic shifts to alternative path"
+      },
+      {
+       "from": 0,
+       "to": 0,
+       "label": "Verify counters near zero"
+      },
+      {
+       "from": 0,
+       "to": 1,
+       "label": "Close session; start upgrade"
+      },
+      {
+       "from": 0,
+       "to": 1,
+       "label": "Session back after upgrade",
+       "note": "max-metric on start-up"
+      },
+      {
+       "from": 1,
+       "to": 0,
+       "label": "Traffic returns to R2",
+       "reply": true
+      }
+     ],
+     "caption": "The drain is complete only when counters prove it, not when the command is entered. On return, max-metric on start-up keeps transit traffic away until the forwarding table is ready."
+    },
+    {
      "type": "cli",
      "title": "Draining a node before maintenance",
      "device": "R2 · IOS-style CLI",
@@ -1204,6 +1625,48 @@ TRACK.modules.push({
        "text": "Confirm the estate is consistent, update the source of truth and record lessons."
       }
      ]
+    },
+    {
+     "type": "callout",
+     "kind": "pro",
+     "title": "What a network digital twin can and cannot prove",
+     "text": "A digital twin — a model built from the real configurations and topology, sometimes with emulated devices — can check reachability, policy intent, failure scenarios and the exact effect of a change before it touches production. It cannot prove hardware behaviour, software bugs under real load or the timing of convergence. Use it to catch logic errors early, and keep canaries and post-checks to catch what the model cannot see."
+    },
+    {
+     "type": "cycle",
+     "title": "A safe change loop",
+     "center": "One wave",
+     "items": [
+      {
+       "label": "Plan",
+       "text": "Scope, wave order, rollback"
+      },
+      {
+       "label": "Model",
+       "text": "Digital twin or simulation"
+      },
+      {
+       "label": "Pre-check",
+       "text": "Baseline routing and health"
+      },
+      {
+       "label": "Drain",
+       "text": "Move traffic, verify counters"
+      },
+      {
+       "label": "Change",
+       "text": "Automated, rate-limited"
+      },
+      {
+       "label": "Post-check",
+       "text": "Compare with baseline"
+      },
+      {
+       "label": "Restore & learn",
+       "text": "Return traffic, update records"
+      }
+     ],
+     "caption": "Each pass through the loop is one wave. The model check and pre-checks come before any traffic moves, and every wave ends by updating the source of truth so the next change starts from reality."
     },
     {
      "type": "scenario",
@@ -1293,6 +1756,17 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Treat change as a failure mode: most major outages start with planned work",
+      "Drain before touch, verify by counters, and keep survivors under their survivable ceiling",
+      "Move changes through failure domains: model, canary, one domain, then the rest — never both halves together",
+      "Digital twins catch logic errors before production; canaries and post-checks catch the rest",
+      "Services with no maintenance window need N+2 or independent halves"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -1358,7 +1832,7 @@ TRACK.modules.push({
    "id": "m5-l5",
    "title": "Disaster Recovery Design",
    "subtitle": "Design for the day a whole site is gone: RPO, RTO and the network that makes them real",
-   "minutes": 28,
+   "minutes": 31,
    "objectives": [
     "Translate RPO and RTO into network requirements for replication and failover",
     "Compare DR patterns and the network mechanisms that move users to a surviving site",
@@ -1367,7 +1841,7 @@ TRACK.modules.push({
    "blocks": [
     {
      "type": "text",
-     "text": "High availability handles component failures inside a site. **Disaster recovery** assumes the site itself is gone — fire, flood, power, regional outage, ransomware — and asks how quickly service returns elsewhere and how much data is lost. The network is often the hardest part of DR: replication needs bandwidth and latency guarantees, and users must find the surviving site without manual reconfiguration."
+     "text": "High availability handles component failures inside a site. **Disaster recovery** assumes the site itself is gone — fire, flood, power, regional outage, ransomware — and asks how quickly service returns elsewhere and how much data is lost. The network is often the hardest part of DR: replication needs bandwidth and latency guarantees, and users must find the surviving site without manual reconfiguration.\n**Cyber recovery** is a different problem from site recovery. Ransomware and destructive attacks leave the building standing but corrupt data and the systems that manage it, and synchronous replication copies the damage in milliseconds. Design immutable or logically isolated backups, a clean recovery environment that can be rebuilt without trusting production identity and management systems, and an out-of-band management network. Operational-resilience regulation — for example the EU's DORA, applicable since January 2025 — increasingly expects such scenarios to be tested, not just documented."
     },
     {
      "type": "callout",
@@ -1493,6 +1967,107 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "topology",
+     "title": "Two-site payment switch with a far DR copy",
+     "nodes": [
+      {
+       "id": "wit",
+       "kind": "server",
+       "label": "Quorum witness",
+       "x": 2.5,
+       "y": 0,
+       "sub": "Third location"
+      },
+      {
+       "id": "a",
+       "kind": "server",
+       "label": "Site A",
+       "x": 1,
+       "y": 2,
+       "sub": "Active core"
+      },
+      {
+       "id": "b",
+       "kind": "server",
+       "label": "Site B (35 km)",
+       "x": 4,
+       "y": 2,
+       "sub": "Standby core"
+      },
+      {
+       "id": "c",
+       "kind": "storage",
+       "label": "Far DR site",
+       "x": 7,
+       "y": 0.5,
+       "sub": "Async copy"
+      },
+      {
+       "id": "k1",
+       "kind": "cloud",
+       "label": "Carrier 1",
+       "x": 1,
+       "y": 4
+      },
+      {
+       "id": "k2",
+       "kind": "cloud",
+       "label": "Carrier 2",
+       "x": 4,
+       "y": 4
+      },
+      {
+       "id": "bank",
+       "kind": "host",
+       "label": "Member bank",
+       "x": 2.5,
+       "y": 5.5,
+       "sub": "BGP + BFD to both"
+      }
+     ],
+     "links": [
+      {
+       "a": "a",
+       "b": "b",
+       "label": "sync replication",
+       "style": "bold"
+      },
+      {
+       "a": "a",
+       "b": "c",
+       "label": "async",
+       "style": "dashed"
+      },
+      {
+       "a": "wit",
+       "b": "a",
+       "style": "dashed"
+      },
+      {
+       "a": "wit",
+       "b": "b",
+       "style": "dashed"
+      },
+      {
+       "a": "k1",
+       "b": "a"
+      },
+      {
+       "a": "k2",
+       "b": "b"
+      },
+      {
+       "a": "bank",
+       "b": "k1"
+      },
+      {
+       "a": "bank",
+       "b": "k2"
+      }
+     ],
+     "caption": "The metro pair replicates synchronously for an RPO of zero; the far site receives an asynchronous copy for regional disasters. The witness sits at a third location, and each bank reaches each site through a different carrier."
+    },
+    {
      "type": "callout",
      "kind": "warning",
      "text": "When two sites lose contact with each other but both remain up, each may believe the other has failed and become active. With stateful systems that means two primaries accepting conflicting writes. Use a **witness or quorum at a third location** with independent connectivity, and decide in advance which site wins when the inter-site link fails.",
@@ -1503,6 +2078,43 @@ TRACK.modules.push({
      "kind": "insight",
      "text": "Extending a VLAN between two data centres makes mobility easy but merges both sites into one Layer 2 failure domain. A loop, a storm or a control-plane bug can take down both — the exact event DR exists to survive. If adjacency is unavoidable, contain it with an overlay, strict flooding controls and per-site gateways, and keep it to the applications that truly need it.",
      "title": "Stretched Layer 2 is not DR"
+    },
+    {
+     "type": "timeline",
+     "title": "From disaster to service restored (illustrative 15-minute RTO)",
+     "items": [
+      {
+       "when": "T+0",
+       "label": "Site A lost",
+       "text": "Power, fire or regional event"
+      },
+      {
+       "when": "T+1 min",
+       "label": "Monitoring and witness confirm",
+       "text": "Site B wins quorum"
+      },
+      {
+       "when": "T+3 min",
+       "label": "Disaster declared",
+       "text": "Pre-agreed criteria, named authority"
+      },
+      {
+       "when": "T+5 min",
+       "label": "Site B core promoted",
+       "text": "Committed data already replicated"
+      },
+      {
+       "when": "T+7 min",
+       "label": "Service prefixes advertised from B",
+       "text": "Banks follow routing, no DNS wait"
+      },
+      {
+       "when": "T+12 min",
+       "label": "Transaction tests pass",
+       "text": "Service declared restored inside RTO"
+      }
+     ],
+     "caption": "Illustrative timings. Most of the RTO is spent detecting and deciding, not switching; automating the declaration criteria and the route move is what makes a 15-minute target realistic."
     },
     {
      "type": "case",
@@ -1624,6 +2236,17 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "RPO drives replication design; RTO drives failover design",
+      "Synchronous replication gives zero data loss only over short, metro-scale distances; use a far asynchronous copy for regional events",
+      "A witness at a third location with independent connectivity prevents split-brain",
+      "Move users by routing or health-checked DNS, not by stretching layer 2",
+      "Plan cyber recovery separately: isolated backups and a clean environment, tested regularly"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -1705,7 +2328,7 @@ TRACK.modules.push({
    "id": "m6-l1",
    "title": "Zero-Trust Principles & Segmentation Strategy",
    "subtitle": "Stop trusting location — design access around identity, context and containment",
-   "minutes": 28,
+   "minutes": 31,
    "objectives": [
     "Apply zero-trust design principles and the logical architecture of NIST SP 800-207",
     "Choose between macro- and micro-segmentation and combine them coherently",
@@ -1794,6 +2417,67 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "sequence",
+     "title": "A zero-trust access decision, then a revocation",
+     "actors": [
+      "Subject (user + device)",
+      "Enforcement point",
+      "Decision point",
+      "Signal sources",
+      "Resource"
+     ],
+     "steps": [
+      {
+       "from": 0,
+       "to": 1,
+       "label": "Request access to the app"
+      },
+      {
+       "from": 1,
+       "to": 2,
+       "label": "Evaluate this request"
+      },
+      {
+       "from": 2,
+       "to": 3,
+       "label": "Identity, posture, risk?"
+      },
+      {
+       "from": 3,
+       "to": 2,
+       "label": "Signals returned",
+       "reply": true
+      },
+      {
+       "from": 2,
+       "to": 1,
+       "label": "Grant: this app, this session",
+       "reply": true
+      },
+      {
+       "from": 1,
+       "to": 4,
+       "label": "Session established"
+      },
+      {
+       "from": 3,
+       "to": 2,
+       "label": "Posture changed: agent disabled"
+      },
+      {
+       "from": 2,
+       "to": 1,
+       "label": "Restrict or revoke the session"
+      },
+      {
+       "from": 1,
+       "to": 4,
+       "label": "Session terminated"
+      }
+     ],
+     "caption": "The enforcement point never decides on its own: it asks the decision point, which weighs identity, device state and risk signals. Because evaluation continues, a posture change later in the session can restrict or end access without waiting for the user to reconnect."
+    },
+    {
      "type": "compare",
      "title": "Macro- versus micro-segmentation",
      "columns": [
@@ -1816,6 +2500,63 @@ TRACK.modules.push({
        ]
       }
      ]
+    },
+    {
+     "type": "tree",
+     "title": "Macro zones first, micro groups inside them",
+     "root": {
+      "label": "Enterprise",
+      "children": [
+       {
+        "label": "Users",
+        "text": "Zone",
+        "children": [
+         {
+          "label": "Staff"
+         },
+         {
+          "label": "Contractors"
+         }
+        ]
+       },
+       {
+        "label": "Data centre",
+        "text": "Zone",
+        "children": [
+         {
+          "label": "Web tier"
+         },
+         {
+          "label": "App tier"
+         },
+         {
+          "label": "Database tier"
+         }
+        ]
+       },
+       {
+        "label": "OT",
+        "text": "Zone",
+        "children": [
+         {
+          "label": "Production cell 1"
+         },
+         {
+          "label": "Production cell 2"
+         }
+        ]
+       },
+       {
+        "label": "Guest",
+        "text": "Internet only"
+       },
+       {
+        "label": "Management",
+        "text": "Jump hosts only"
+       }
+      ]
+     },
+     "caption": "Macro zones are separated by stateful boundaries and match trust levels and compliance scope; micro groups inside each zone limit lateral movement. An example estate, not a template."
     },
     {
      "type": "table",
@@ -1946,6 +2687,12 @@ TRACK.modules.push({
      "title": "Zero trust is a design property, not a product"
     },
     {
+     "type": "callout",
+     "kind": "pro",
+     "title": "Reference models worth knowing",
+     "text": "NIST SP 800-207 remains the common vocabulary for zero-trust architecture, and NIST has since published practice guides with worked example builds. Maturity models such as the US CISA Zero Trust Maturity Model (version 2.0) help stage a programme across identity, devices, networks, applications and data. Use them to structure the roadmap, not as a checklist of products to buy."
+    },
+    {
      "type": "checklist",
      "title": "Zero-trust segmentation checklist",
      "items": [
@@ -1997,6 +2744,17 @@ TRACK.modules.push({
        "term": "Default deny",
        "def": "A policy stance in which anything not explicitly permitted is blocked."
       }
+     ]
+    },
+    {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Zero trust removes implicit trust from network location; every access is decided per session from identity, device and context",
+      "The network still carries and enforces policy and supplies telemetry",
+      "Combine macro zones with micro-segmentation where lateral movement matters most",
+      "Discover flows, run policy in monitor mode, then enforce group by group",
+      "Test the design by asking what one compromised host can reach and how fast you would know"
      ]
     },
     {
@@ -2065,7 +2823,7 @@ TRACK.modules.push({
    "id": "m6-l2",
    "title": "Enforcement Placement, Secure Edge & DMZ Patterns",
    "subtitle": "Put policy where it protects most and costs least, and build edges that fail safely",
-   "minutes": 28,
+   "minutes": 31,
    "objectives": [
     "Decide where to place enforcement for north-south and east-west traffic",
     "Compare DMZ patterns and secure internet-edge layering",
@@ -2108,6 +2866,106 @@ TRACK.modules.push({
        ]
       }
      ]
+    },
+    {
+     "type": "topology",
+     "title": "Cloud-delivered security edge with application-level access",
+     "nodes": [
+      {
+       "id": "saas",
+       "kind": "cloud",
+       "label": "SaaS apps",
+       "x": 1,
+       "y": 0
+      },
+      {
+       "id": "net",
+       "kind": "internet",
+       "label": "Internet",
+       "x": 6,
+       "y": 0
+      },
+      {
+       "id": "sse",
+       "kind": "cloud",
+       "label": "Service edge PoP",
+       "x": 3.5,
+       "y": 2,
+       "sub": "SWG, CASB, ZTNA, FWaaS"
+      },
+      {
+       "id": "rem",
+       "kind": "laptop",
+       "label": "Remote user",
+       "x": 0,
+       "y": 4,
+       "sub": "Agent, device posture"
+      },
+      {
+       "id": "br",
+       "kind": "router",
+       "label": "Branch edge",
+       "x": 3.5,
+       "y": 4.5,
+       "sub": "SD-WAN"
+      },
+      {
+       "id": "con",
+       "kind": "process",
+       "label": "ZTNA connector",
+       "x": 6,
+       "y": 3,
+       "sub": "Outbound-only"
+      },
+      {
+       "id": "app",
+       "kind": "server",
+       "label": "Private app",
+       "x": 7,
+       "y": 5
+      }
+     ],
+     "links": [
+      {
+       "a": "rem",
+       "b": "sse",
+       "style": "tunnel"
+      },
+      {
+       "a": "br",
+       "b": "sse",
+       "style": "tunnel"
+      },
+      {
+       "a": "sse",
+       "b": "saas"
+      },
+      {
+       "a": "sse",
+       "b": "net"
+      },
+      {
+       "a": "con",
+       "b": "sse",
+       "label": "dials out",
+       "style": "tunnel"
+      },
+      {
+       "a": "con",
+       "b": "app"
+      }
+     ],
+     "zones": [
+      {
+       "label": "Data centre",
+       "x": 6,
+       "y": 3,
+       "w": 2,
+       "h": 3,
+       "tone": "good"
+      }
+     ],
+     "caption": "Remote users and branches connect to a nearby service edge that applies web, data and access policy. Private applications are reached through a connector that dials out from the data centre, so nothing internal listens on the internet."
     },
     {
      "type": "table",
@@ -2285,6 +3143,83 @@ TRACK.modules.push({
      "title": "Asymmetric paths through stateful devices"
     },
     {
+     "type": "topology",
+     "title": "Why asymmetric routing breaks stateful inspection",
+     "nodes": [
+      {
+       "id": "cl",
+       "kind": "internet",
+       "label": "Client",
+       "x": 3.5,
+       "y": 0
+      },
+      {
+       "id": "fa",
+       "kind": "firewall",
+       "label": "Firewall A",
+       "x": 1,
+       "y": 2,
+       "sub": "Sees request only"
+      },
+      {
+       "id": "fb",
+       "kind": "firewall",
+       "label": "Firewall B",
+       "x": 6,
+       "y": 2,
+       "sub": "No session state"
+      },
+      {
+       "id": "app",
+       "kind": "server",
+       "label": "App (both sites)",
+       "x": 3.5,
+       "y": 4
+      }
+     ],
+     "links": [
+      {
+       "a": "cl",
+       "b": "fa",
+       "label": "request"
+      },
+      {
+       "a": "fa",
+       "b": "app",
+       "label": "request"
+      },
+      {
+       "a": "app",
+       "b": "fb",
+       "label": "reply",
+       "style": "attack"
+      },
+      {
+       "a": "fb",
+       "b": "cl",
+       "label": "dropped",
+       "style": "attack"
+      }
+     ],
+     "zones": [
+      {
+       "label": "Site A",
+       "x": 1,
+       "y": 2,
+       "w": 1,
+       "h": 1
+      },
+      {
+       "label": "Site B",
+       "x": 6,
+       "y": 2,
+       "w": 1,
+       "h": 1
+      }
+     ],
+     "caption": "The request is inspected by Site A's firewall, but the reply leaves through Site B's, which has no session state and drops it. Per-site egress or source NAT at each site forces both directions through the same firewall."
+    },
+    {
      "type": "callout",
      "kind": "pro",
      "text": "Traditional remote-access VPNs put a user's device on the internal network. Brokered, application-level access (often called zero-trust network access) connects a verified user and device to a named application only, hiding everything else. For third parties and unmanaged devices it shrinks the blast radius dramatically.",
@@ -2372,6 +3307,16 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Place enforcement per traffic pattern: perimeter for north-south, zone firewalls for macro boundaries, distributed points for east-west",
+      "Cloud-delivered security edges suit remote users and SaaS-heavy branches; check points of presence and failure behaviour",
+      "Brokered DMZs and application-level access keep internal systems unreachable from outside",
+      "Stateful devices must see both directions; design symmetric paths per site"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -2437,11 +3382,12 @@ TRACK.modules.push({
    "id": "m6-l3",
    "title": "Identity-Driven Access & Encryption Choices",
    "subtitle": "Let identity decide who connects, and choose the right layer to encrypt",
-   "minutes": 28,
+   "minutes": 31,
    "objectives": [
     "Design identity-driven network access for users, devices and headless endpoints",
     "Plan a safe rollout of port-based authentication",
-    "Choose between MACsec, IPsec and TLS based on requirements and trade-offs"
+    "Choose between MACsec, IPsec and TLS based on requirements and trade-offs",
+    "Plan crypto-agility for the move to post-quantum key exchange"
    ],
    "blocks": [
     {
@@ -2477,6 +3423,63 @@ TRACK.modules.push({
        "text": "Change of authorisation if posture or risk changes"
       }
      ]
+    },
+    {
+     "type": "sequence",
+     "title": "802.1X with certificate-based authentication",
+     "actors": [
+      "Endpoint (supplicant)",
+      "Switch (authenticator)",
+      "Policy server (RADIUS)"
+     ],
+     "steps": [
+      {
+       "from": 0,
+       "to": 1,
+       "label": "EAPOL-Start"
+      },
+      {
+       "from": 1,
+       "to": 0,
+       "label": "EAP-Request / Identity",
+       "reply": true
+      },
+      {
+       "from": 0,
+       "to": 1,
+       "label": "EAP-Response / Identity"
+      },
+      {
+       "from": 1,
+       "to": 2,
+       "label": "RADIUS Access-Request (EAP)"
+      },
+      {
+       "from": 2,
+       "to": 0,
+       "label": "EAP-TLS: server and client certificates",
+       "note": "relayed by the switch"
+      },
+      {
+       "from": 2,
+       "to": 1,
+       "label": "Access-Accept + tag",
+       "reply": true
+      },
+      {
+       "from": 1,
+       "to": 0,
+       "label": "EAP-Success; port authorised",
+       "reply": true
+      },
+      {
+       "from": 2,
+       "to": 1,
+       "label": "Change of authorisation: restrict",
+       "note": "posture changed later"
+      }
+     ],
+     "caption": "The switch relays EAP between the endpoint and the policy server and opens the port only after Access-Accept, applying the returned group tag or access list. Change of authorisation lets the server tighten access mid-session."
     },
     {
      "type": "table",
@@ -2584,6 +3587,34 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "packet",
+     "title": "The MACsec security tag (SecTAG) with SCI",
+     "width": 32,
+     "fields": [
+      {
+       "label": "MACsec EtherType 0x88E5",
+       "bits": 16
+      },
+      {
+       "label": "TCI / AN",
+       "bits": 8
+      },
+      {
+       "label": "Short length",
+       "bits": 8
+      },
+      {
+       "label": "Packet number (PN)",
+       "bits": 32
+      },
+      {
+       "label": "Secure channel identifier (SCI)",
+       "bits": 64
+      }
+     ],
+     "caption": "The SecTAG follows the source MAC address and is 8 bytes, or 16 when the optional secure channel identifier is included; a 16-byte integrity check value follows the encrypted payload, giving the 24–32 bytes of overhead. Extended packet numbering (XPN) uses a 64-bit counter but still carries only the low 32 bits here."
+    },
+    {
      "type": "table",
      "title": "Encryption decision matrix",
      "head": [
@@ -2618,6 +3649,12 @@ TRACK.modules.push({
        "No single layer covers every path and threat"
       ]
      ]
+    },
+    {
+     "type": "callout",
+     "kind": "warning",
+     "title": "Plan for post-quantum cryptography now",
+     "text": "Large quantum computers would break today's public-key algorithms (RSA and elliptic-curve key exchange and signatures), and data recorded now could be decrypted later — the 'harvest now, decrypt later' risk for long-lived secrets. NIST published its first post-quantum standards in August 2024 (FIPS 203 for key establishment, FIPS 204 and 205 for signatures) and has proposed retiring the vulnerable algorithms over the following decade; check the current timetable. Symmetric ciphers with 256-bit keys, as used for MACsec and IPsec bulk encryption, are not the weak point; key exchange and certificates are. Design for **crypto-agility**: inventory where keys are negotiated (IKE, TLS, MACsec key agreement, management access), prefer platforms that support hybrid post-quantum key exchange, and avoid hard-wired algorithms."
     },
     {
      "type": "formula",
@@ -2747,6 +3784,17 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Identity decides access at connection time; group tags make policy independent of IP addresses",
+      "Roll out port authentication monitor first, then low-impact, then closed where justified",
+      "MAC-based admission identifies but does not authenticate: pair it with profiling and tight policy",
+      "Choose MACsec for links, IPsec for routed paths and mutual TLS for services — and manage MTU",
+      "Build crypto-agility now: post-quantum risk sits in key exchange and certificates"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -2803,6 +3851,17 @@ TRACK.modules.push({
        ],
        "answer": 3,
        "explain": "Encrypted payloads are opaque to passive sensors. Visibility moves to proxies that terminate TLS, endpoint telemetry and metadata analysis."
+      },
+      {
+       "q": "A bank's inter-site traffic carries records that must stay confidential for 20 years. Which design step BEST addresses the post-quantum risk?",
+       "options": [
+        "Replace MACsec with IPsec, since IPsec uses newer symmetric ciphers",
+        "Wait until large quantum computers exist before changing any design",
+        "Shorten every key lifetime to one hour on all existing tunnels",
+        "Adopt crypto-agile, hybrid post-quantum key exchange"
+       ],
+       "answer": 3,
+       "explain": "Recorded traffic could be decrypted later if the key exchange is broken, so long-lived data needs post-quantum protection of key establishment now. Symmetric bulk ciphers are not the weak point, and shorter key lifetimes do not change the vulnerable algorithm."
       }
      ]
     }
@@ -2812,7 +3871,7 @@ TRACK.modules.push({
    "id": "m6-l4",
    "title": "Compliance Zones & Security Visibility Design",
    "subtitle": "Use segmentation to shrink regulatory scope, and design the network so security teams can see",
-   "minutes": 30,
+   "minutes": 33,
    "objectives": [
     "Design compliance zones that reduce the scope of payment-card, health and personal-data obligations",
     "Build a segmentation matrix with owners, enforcement points and evidence",
@@ -2826,7 +3885,7 @@ TRACK.modules.push({
     {
      "type": "callout",
      "kind": "definition",
-     "text": "Under the payment-card industry data security standard (PCI DSS), the **cardholder data environment** includes systems that store, process or transmit card data, plus systems connected to them or able to affect their security. Proper segmentation can take the rest of the network out of scope; the segmentation itself must be documented and validated by testing. Health and personal-data regimes differ in detail but reward the same pattern: know where the data is, isolate it and prove the isolation.",
+     "text": "Under the payment-card industry data security standard (PCI DSS, version 4.x — check the current revision), the **cardholder data environment** includes systems that store, process or transmit card data, plus systems connected to them or able to affect their security. Proper segmentation can take the rest of the network out of scope; the segmentation itself must be documented and validated by testing. Health and personal-data regimes differ in detail but reward the same pattern: know where the data is, isolate it and prove the isolation.",
      "title": "Scope and scope reduction"
     },
     {
@@ -2896,6 +3955,120 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "topology",
+     "title": "Shrinking card-data scope with encryption at the terminal and a small zone",
+     "nodes": [
+      {
+       "id": "term",
+       "kind": "phone",
+       "label": "Card terminals",
+       "x": 0,
+       "y": 0,
+       "sub": "Encrypted at the swipe"
+      },
+      {
+       "id": "proc",
+       "kind": "cloud",
+       "label": "Payment processor",
+       "x": 7,
+       "y": 0
+      },
+      {
+       "id": "corp",
+       "kind": "host",
+       "label": "Corporate LAN",
+       "x": 0,
+       "y": 2.5,
+       "sub": "Out of scope"
+      },
+      {
+       "id": "fw",
+       "kind": "firewall",
+       "label": "Zone firewall",
+       "x": 3,
+       "y": 2.5,
+       "sub": "Default deny"
+      },
+      {
+       "id": "app",
+       "kind": "server",
+       "label": "Payment app",
+       "x": 5.5,
+       "y": 2.5
+      },
+      {
+       "id": "vault",
+       "kind": "vault",
+       "label": "Token vault",
+       "x": 7,
+       "y": 4
+      },
+      {
+       "id": "jump",
+       "kind": "host",
+       "label": "Admin jump host",
+       "x": 3,
+       "y": 4.5,
+       "sub": "MFA, session recording"
+      },
+      {
+       "id": "siem",
+       "kind": "siem",
+       "label": "SIEM",
+       "x": 5.5,
+       "y": 5.5
+      }
+     ],
+     "links": [
+      {
+       "a": "term",
+       "b": "proc",
+       "label": "encrypted to processor",
+       "style": "tunnel"
+      },
+      {
+       "a": "corp",
+       "b": "fw",
+       "label": "blocked"
+      },
+      {
+       "a": "fw",
+       "b": "app"
+      },
+      {
+       "a": "app",
+       "b": "vault"
+      },
+      {
+       "a": "app",
+       "b": "proc",
+       "label": "tokens"
+      },
+      {
+       "a": "jump",
+       "b": "fw",
+       "label": "admin only"
+      },
+      {
+       "a": "fw",
+       "b": "siem",
+       "label": "logs",
+       "style": "dashed"
+      }
+     ],
+     "zones": [
+      {
+       "label": "Cardholder data environment",
+       "x": 5.5,
+       "y": 2.5,
+       "w": 2.5,
+       "h": 2.5,
+       "tone": "warn"
+      }
+     ],
+     "caption": "Card data is encrypted at the terminal and travels to the processor without being readable on the store network. What remains in scope sits in a small default-deny zone, administered only through a recorded jump host and logged to the SIEM."
+    },
+    {
      "type": "case",
      "title": "Hospital segmentation project",
      "context": "A 900-bed teaching hospital runs one flat network for electronic health records, 4,000 medical devices (infusion pumps, imaging systems, patient monitors), building management, staff PCs, a research network and guest Wi-Fi. Many imaging systems run unsupported operating systems that the manufacturers will not let the hospital patch. Two hospitals in the region were hit by ransomware last year; one diverted emergency ambulances for three days. The board wants risk reduced within 12 months without any interruption to clinical care. The security team is five people.",
@@ -2906,6 +4079,39 @@ TRACK.modules.push({
       "What visibility does the security team need, given its size?"
      ],
      "answer": "**Macro zones:** clinical systems (health records and clinical applications), medical devices (sub-grouped by type and manufacturer), imaging, building management and OT, corporate users, research (separate, with its own data-sharing controls), guest (internet only), and a management zone. **Unpatchable devices:** network-based containment — group them by type, allow only the flows each type needs (for example modality-to-archive and modality-to-worklist), block internet access, and put manufacturer remote support through a brokered jump service with session recording. **Enforcement:** inter-zone firewalls in the data centre for macro boundaries; group-based policy at the access and wireless edge for device groups. Roll out in **monitor mode** first, using several weeks of flow data to build the matrix; then enforce the lowest-risk boundaries (guest, research, building management) before clinical device groups, with clinical engineering signing off each step and an immediate rollback path. **Visibility:** with five people, favour high-signal sources — flow telemetry from all zone boundaries, firewall deny logs, DNS logs and passive device-profiling — feeding one analytics platform with tuned alerts, rather than full packet capture everywhere. Measure success as 'a compromised staff PC can reach no medical device and only the clinical services it needs'."
+    },
+    {
+     "type": "timeline",
+     "title": "Compliance milestones that shape network design",
+     "items": [
+      {
+       "when": "Mar 2022",
+       "label": "PCI DSS v4.0 published"
+      },
+      {
+       "when": "Mar 2024",
+       "label": "PCI DSS v3.2.1 retired"
+      },
+      {
+       "when": "Jun 2024",
+       "label": "PCI DSS v4.0.1 limited revision"
+      },
+      {
+       "when": "Oct 2024",
+       "label": "NIS2 transposition deadline",
+       "text": "EU cyber-security duties for essential and important entities"
+      },
+      {
+       "when": "Jan 2025",
+       "label": "DORA applies",
+       "text": "EU digital operational resilience for financial entities"
+      },
+      {
+       "when": "Mar 2025",
+       "label": "PCI DSS v4 future-dated requirements mandatory"
+      }
+     ],
+     "caption": "Versions and dates move: confirm the current revision of each standard and the national transposition of each EU directive before quoting them in a design."
     },
     {
      "type": "template",
@@ -3102,6 +4308,17 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Concentrate regulated data into small, well-controlled zones; everything that can reach a zone tends to join its scope",
+      "Remove data first (tokenisation, encryption at the terminal), then isolate and test what remains",
+      "Record every permitted flow with an owner, enforcement point and evidence",
+      "Design visibility in tiers: flows and logs everywhere, packet capture at choke points",
+      "Encryption moves visibility to termination points, endpoints, DNS and identity logs"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -3183,7 +4400,7 @@ TRACK.modules.push({
    "id": "m7-l1",
    "title": "Cloud Constructs & Hybrid Connectivity",
    "subtitle": "Translate familiar network design into cloud building blocks, then join them to the estate",
-   "minutes": 30,
+   "minutes": 33,
    "objectives": [
     "Map cloud networking constructs to their on-premises equivalents and design implications",
     "Choose between peering meshes, transit hubs and shared virtual networks",
@@ -3262,6 +4479,45 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "chart",
+     "title": "Objects to manage: full-mesh peering versus a transit hub",
+     "kind": "line",
+     "labels": [
+      "10 VNets",
+      "20",
+      "30",
+      "40",
+      "50",
+      "60"
+     ],
+     "series": [
+      {
+       "name": "Full-mesh peerings",
+       "values": [
+        45,
+        190,
+        435,
+        780,
+        1225,
+        1770
+       ]
+      },
+      {
+       "name": "Hub attachments",
+       "values": [
+        10,
+        20,
+        30,
+        40,
+        50,
+        60
+       ]
+      }
+     ],
+     "yLabel": "Objects",
+     "caption": "Computed from n(n − 1) ÷ 2 peerings against n hub attachments. Beyond a handful of virtual networks the mesh becomes unmanageable, which is why most estates choose a hub and keep direct peering for a few high-volume pairs."
+    },
+    {
      "type": "compare",
      "title": "Inter-network topology options",
      "columns": [
@@ -3317,6 +4573,12 @@ TRACK.modules.push({
        ]
       }
      ]
+    },
+    {
+     "type": "callout",
+     "kind": "insight",
+     "title": "Cloud-to-cloud interconnects are now a product",
+     "text": "Besides building your own routers in an exchange facility, several providers now sell managed private interconnects between their own clouds and those of other providers, and colocation operators offer virtual routers on their exchange fabrics. They remove hardware and lead time but add another provider's availability and pricing model to the design; compare them on the same diversity, capacity and cost criteria as any other path."
     },
     {
      "type": "table",
@@ -3402,6 +4664,128 @@ TRACK.modules.push({
        "text": "Workload subnets across zones"
       }
      ]
+    },
+    {
+     "type": "topology",
+     "title": "Hybrid connectivity with diverse private connections and a VPN backup",
+     "nodes": [
+      {
+       "id": "s1",
+       "kind": "vm",
+       "label": "Spoke VNet A",
+       "x": 1.5,
+       "y": 0,
+       "sub": "App tiers in 3 zones"
+      },
+      {
+       "id": "hub",
+       "kind": "router",
+       "label": "Transit hub",
+       "x": 3.5,
+       "y": 0.5,
+       "sub": "Route tables, inspection"
+      },
+      {
+       "id": "s2",
+       "kind": "vm",
+       "label": "Spoke VNet B",
+       "x": 5.5,
+       "y": 0,
+       "sub": "Shared services"
+      },
+      {
+       "id": "p1",
+       "kind": "gateway",
+       "label": "Provider edge 1",
+       "x": 1.5,
+       "y": 2.5
+      },
+      {
+       "id": "p2",
+       "kind": "gateway",
+       "label": "Provider edge 2",
+       "x": 5.5,
+       "y": 2.5
+      },
+      {
+       "id": "k1",
+       "kind": "router",
+       "label": "Colo router A",
+       "x": 1.5,
+       "y": 4,
+       "sub": "Facility 1"
+      },
+      {
+       "id": "k2",
+       "kind": "router",
+       "label": "Colo router B",
+       "x": 5.5,
+       "y": 4,
+       "sub": "Facility 2"
+      },
+      {
+       "id": "dc",
+       "kind": "l3switch",
+       "label": "On-prem DC",
+       "x": 3.5,
+       "y": 5.5
+      }
+     ],
+     "links": [
+      {
+       "a": "s1",
+       "b": "hub"
+      },
+      {
+       "a": "s2",
+       "b": "hub"
+      },
+      {
+       "a": "hub",
+       "b": "p1"
+      },
+      {
+       "a": "hub",
+       "b": "p2"
+      },
+      {
+       "a": "p1",
+       "b": "k1",
+       "label": "10G private",
+       "style": "bold"
+      },
+      {
+       "a": "p2",
+       "b": "k2",
+       "label": "10G private",
+       "style": "bold"
+      },
+      {
+       "a": "k1",
+       "b": "dc"
+      },
+      {
+       "a": "k2",
+       "b": "dc"
+      },
+      {
+       "a": "dc",
+       "b": "hub",
+       "label": "IPsec backup",
+       "style": "tunnel"
+      }
+     ],
+     "zones": [
+      {
+       "label": "Cloud region",
+       "x": 1.5,
+       "y": 0,
+       "w": 5,
+       "h": 1.5,
+       "tone": "accent"
+      }
+     ],
+     "caption": "Two private connections in different colocation facilities terminate on separate provider edges, so no single facility, device or port takes the path down. An IPsec tunnel from the data centre carries critical flows if both fail. The transit hub gives every spoke a route to on-premises."
     },
     {
      "type": "cli",
@@ -3534,6 +4918,16 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Map cloud constructs to familiar ones, but respect provider quotas, non-transitive peering and per-GB pricing",
+      "Choose a transit hub for most estates; keep direct peering for a few high-volume pairs",
+      "Diversity is by facility, not just device: two private connections in one facility share fate",
+      "A backup path is only a backup for the traffic it can actually carry"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -3599,11 +4993,12 @@ TRACK.modules.push({
    "id": "m7-l2",
    "title": "Multi-Cloud, IP Addressing & Hybrid DNS",
    "subtitle": "Choose multi-cloud for the right reasons, and get addresses and names right before they become migrations",
-   "minutes": 30,
+   "minutes": 33,
    "objectives": [
     "Evaluate when multi-cloud is justified and which interconnection pattern fits",
     "Build an IP addressing plan that scales across on-premises and several clouds",
-    "Design hybrid DNS so private names and private endpoints resolve correctly everywhere"
+    "Design hybrid DNS so private names and private endpoints resolve correctly everywhere",
+    "Decide where IPv6-mostly or IPv6-only designs relieve IPv4 pressure"
    ],
    "blocks": [
     {
@@ -3711,6 +5106,52 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "tree",
+     "title": "A summarisable hybrid address plan",
+     "root": {
+      "label": "10.0.0.0/8 enterprise",
+      "children": [
+       {
+        "label": "10.0.0.0/10",
+        "text": "On-premises"
+       },
+       {
+        "label": "10.64.0.0/11",
+        "text": "Cloud A",
+        "children": [
+         {
+          "label": "10.64.0.0/13",
+          "text": "Region 1",
+          "children": [
+           {
+            "label": "10.64.0.0/20",
+            "text": "Spoke VNet"
+           },
+           {
+            "label": "10.71.255.0/24",
+            "text": "Hub and links"
+           }
+          ]
+         },
+         {
+          "label": "10.72.0.0/13",
+          "text": "Region 2"
+         }
+        ]
+       },
+       {
+        "label": "10.96.0.0/11",
+        "text": "Cloud B"
+       },
+       {
+        "label": "10.128.0.0/9",
+        "text": "Reserve"
+       }
+      ]
+     },
+     "caption": "Each level summarises the one below: one /11 per cloud, one /13 per region, a /20 per virtual network and per-zone subnets inside it. Ranges are illustrative; the point is that nothing overlaps and every boundary aggregates."
+    },
+    {
      "type": "formula",
      "title": "Addressing arithmetic",
      "items": [
@@ -3731,6 +5172,12 @@ TRACK.modules.push({
      "kind": "warning",
      "text": "Every overlapping range eventually becomes NAT rules, special-case DNS and broken troubleshooting. When overlap is unavoidable — a merger, a partner with the same ranges — contain it at a defined boundary with explicit translation, and plan a re-addressing project rather than letting translation spread.",
      "title": "Overlap is a debt that compounds"
+    },
+    {
+     "type": "callout",
+     "kind": "pro",
+     "title": "IPv6-mostly is now a practical design option",
+     "text": "IPv4 scarcity has a price: several large providers now charge for every public IPv4 address, and container estates exhaust private ranges quickly. An **IPv6-mostly** network gives IPv6-capable clients only IPv6 — DHCPv4 option 108 (RFC 8925) tells them they may skip IPv4 — while NAT64 and DNS64, plus 464XLAT on clients, keep IPv4-only destinations reachable; legacy devices still get dual stack. In cloud, IPv6-only subnets and dual-stack load balancers remove most private IPv4 demand. Plan IPv6 prefixes per region in the same hierarchy as IPv4, and test applications with hard-coded IPv4 literals before switching a segment."
     },
     {
      "type": "compare",
@@ -3763,30 +5210,61 @@ TRACK.modules.push({
      ]
     },
     {
-     "type": "flow",
+     "type": "sequence",
      "title": "On-premises client resolving a cloud private endpoint",
-     "items": [
+     "actors": [
+      "Client",
+      "On-prem resolver",
+      "Cloud inbound endpoint",
+      "Private zone"
+     ],
+     "steps": [
       {
-       "label": "Client",
-       "text": "Asks the on-premises resolver for a platform service name"
+       "from": 0,
+       "to": 1,
+       "label": "Resolve orders.store.example-cloud.net"
       },
       {
-       "label": "On-premises resolver",
-       "text": "Matches a conditional-forwarding rule for the private-endpoint zone"
+       "from": 1,
+       "to": 1,
+       "label": "Match conditional-forward rule",
+       "note": "privatelink zone"
       },
       {
-       "label": "Cloud inbound endpoint",
-       "text": "Receives the query inside the virtual network"
+       "from": 1,
+       "to": 2,
+       "label": "Forward query"
       },
       {
-       "label": "Private zone",
-       "text": "Returns the private address of the endpoint"
+       "from": 2,
+       "to": 3,
+       "label": "Look up private record"
       },
       {
-       "label": "Private path",
-       "text": "Client connects over private connectivity, not the internet"
+       "from": 3,
+       "to": 2,
+       "label": "10.40.12.25",
+       "reply": true
+      },
+      {
+       "from": 2,
+       "to": 1,
+       "label": "10.40.12.25",
+       "reply": true
+      },
+      {
+       "from": 1,
+       "to": 0,
+       "label": "10.40.12.25",
+       "reply": true
+      },
+      {
+       "from": 0,
+       "to": 0,
+       "label": "Connect over private connectivity"
       }
-     ]
+     ],
+     "caption": "Only the private-endpoint zone is forwarded, so every other name still resolves as before. The service name never changes; the resolver path decides whether the client gets the private address and stays off the internet."
     },
     {
      "type": "cli",
@@ -3886,6 +5364,17 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Multi-cloud needs a business driver beyond availability; multi-region in one provider is usually the stronger resilience answer",
+      "Reserve summarisable, non-overlapping aggregates per cloud and region in IPAM before building",
+      "Overlap becomes NAT, special-case DNS and broken troubleshooting — contain it and plan re-addressing",
+      "Design hybrid DNS with conditional forwarding in both directions for private zones and endpoints",
+      "IPv6-mostly and IPv6-only cloud subnets relieve IPv4 pressure; plan IPv6 in the same hierarchy"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -3942,6 +5431,17 @@ TRACK.modules.push({
        ],
        "answer": 2,
        "explain": "Exchange-point interconnection has fixed costs that pay off with volume; small or occasional traffic suits VPN or hairpinning."
+      },
+      {
+       "q": "A campus wants to stop handing IPv4 addresses to modern laptops and phones while legacy printers still need IPv4. Which design BEST fits?",
+       "options": [
+        "Turn off IPv4 for every device on the campus in one change window",
+        "IPv6-mostly: option 108, NAT64/DNS64, legacy kept dual stack",
+        "Keep dual stack everywhere and enlarge every IPv4 subnet to a /16",
+        "Put all clients behind a second layer of IPv4 NAT inside the campus"
+       ],
+       "answer": 1,
+       "explain": "IPv6-mostly lets capable clients run IPv6-only while translation keeps IPv4 destinations reachable and legacy devices keep dual stack. A big-bang IPv4 shutdown breaks legacy devices; larger subnets and extra NAT preserve the scarcity problem."
       }
      ]
     }
@@ -3951,7 +5451,7 @@ TRACK.modules.push({
    "id": "m7-l3",
    "title": "Infrastructure as Code & Designing for Automation",
    "subtitle": "Make automation a design requirement from day 0, not a project for year three",
-   "minutes": 28,
+   "minutes": 31,
    "objectives": [
     "Describe a layered automation architecture from intent to assurance",
     "Compare imperative scripting, declarative infrastructure as code and intent-based approaches",
@@ -4042,6 +5542,38 @@ TRACK.modules.push({
        ]
       }
      ]
+    },
+    {
+     "type": "cycle",
+     "title": "Closed-loop, intent-based network operations",
+     "center": "Network as data",
+     "items": [
+      {
+       "label": "Intent",
+       "text": "Service request as parameters"
+      },
+      {
+       "label": "Source of truth",
+       "text": "IPAM, inventory, policy data"
+      },
+      {
+       "label": "Render & validate",
+       "text": "Templates, guardrails, twin"
+      },
+      {
+       "label": "Deploy in waves",
+       "text": "Canary, then domains"
+      },
+      {
+       "label": "Observe",
+       "text": "Streaming telemetry, SLOs"
+      },
+      {
+       "label": "Reconcile",
+       "text": "Detect drift, roll back or fix"
+      }
+     ],
+     "caption": "Intent enters once, as data; the loop then keeps reality matching it. Drift or a failed objective sends the loop back to intent and design rather than to a manual fix on a device."
     },
     {
      "type": "framework",
@@ -4174,6 +5706,39 @@ TRACK.modules.push({
      "title": "Console changes create drift"
     },
     {
+     "type": "callout",
+     "kind": "warning",
+     "title": "Generated configuration is still untrusted input",
+     "text": "AI tools that draft configuration, policy or automation code from a prompt can speed up routine work, but their output can be confidently wrong. Treat it exactly like a contribution from a new engineer: it enters through the source of truth and the pipeline, passes the same guardrails, model checks and peer review, and never goes straight to a device."
+    },
+    {
+     "type": "timeline",
+     "title": "An automation roadmap for a small team",
+     "items": [
+      {
+       "when": "Months 0–3",
+       "label": "Read-only first",
+       "text": "Backups, inventory, compliance reports"
+      },
+      {
+       "when": "Months 3–6",
+       "label": "Standards and data",
+       "text": "Site types, data model, source of truth"
+      },
+      {
+       "when": "Months 6–12",
+       "label": "Pipeline deploys standard sites",
+       "text": "Review, guardrails, staged rollout"
+      },
+      {
+       "when": "Year 2",
+       "label": "Closed-loop assurance",
+       "text": "Drift detection, objective-driven checks"
+      }
+     ],
+     "caption": "Illustrative phases. Each phase delivers value on its own and builds the data the next phase needs; skipping straight to deployment automation is how inconsistency gets automated."
+    },
+    {
      "type": "scenario",
      "title": "Where should the ministry's automation start?",
      "situation": "A ministry's network team of eight engineers runs 300 district offices, two data centres and a growing cloud estate. Every district office is configured slightly differently. Leadership has approved budget for 'network automation' and a manager proposes buying an orchestration platform and pointing it at the existing devices.",
@@ -4259,6 +5824,17 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Design for automation from day 0: standard building blocks, a data model and one source of truth",
+      "Declarative intent with plan/diff and guardrails makes change repeatable and reviewable",
+      "Automation multiplies whatever it is given — tie it to change waves, canaries and automatic halts",
+      "Restrict production change paths to the pipeline, with an audited break-glass route",
+      "Start read-only, then standardise, then deploy, then close the loop with assurance"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -4324,7 +5900,7 @@ TRACK.modules.push({
    "id": "m7-l4",
    "title": "Observability & Cost-Aware Network Design",
    "subtitle": "Design what you will measure and what you will pay before you build",
-   "minutes": 28,
+   "minutes": 31,
    "objectives": [
     "Design an observability architecture with service-level objectives for the network",
     "Estimate the main cost drivers of hybrid and cloud network designs",
@@ -4388,7 +5964,7 @@ TRACK.modules.push({
        "items": [
         "Devices push structured data at short intervals or on change",
         "Better resolution and scale",
-        "Needs a collection pipeline and data model"
+        "Needs a collection pipeline and data model (for example gNMI with OpenConfig models)"
        ]
       },
       {
@@ -4444,7 +6020,7 @@ TRACK.modules.push({
       {
        "name": "Monthly egress cost",
        "expr": "Cost = GB leaving the provider × egress rate per GB",
-       "meaning": "Internet egress and private-connectivity egress are often priced differently."
+       "meaning": "Internet egress and private-connectivity egress are often priced differently. Terms are changing: the EU Data Act, applicable since September 2025, requires providers to phase out switching charges, including egress when leaving, by January 2027, and some providers already waive egress for departing customers — record the pricing assumption and give it a review trigger."
       },
       {
        "name": "Private connectivity break-even",
@@ -4481,6 +6057,48 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "chart",
+     "title": "Monthly transfer cost: internet egress versus private connection",
+     "kind": "line",
+     "labels": [
+      "0 TB",
+      "10",
+      "20",
+      "30",
+      "40",
+      "50",
+      "60"
+     ],
+     "series": [
+      {
+       "name": "Internet egress",
+       "values": [
+        0,
+        800,
+        1600,
+        2400,
+        3200,
+        4000,
+        4800
+       ]
+      },
+      {
+       "name": "Private connection",
+       "values": [
+        1600,
+        1800,
+        2000,
+        2200,
+        2400,
+        2600,
+        2800
+       ]
+      }
+     ],
+     "yLabel": "Cost per month",
+     "caption": "Computed from the illustrative prices in the worked example. The lines cross near 27 TB a month; below it the internet path is cheaper on transfer cost, above it the private connection wins."
+    },
+    {
      "type": "table",
      "title": "Cost-aware patterns",
      "head": [
@@ -4513,6 +6131,11 @@ TRACK.modules.push({
        "Tag network resources and show cost per team",
        "Unowned spend",
        "Shared hubs need a fair allocation model"
+      ],
+      [
+       "Right-size and power-manage capacity: idle ports, optics, appliances",
+       "Energy cost and carbon",
+       "Keep the headroom failover needs"
       ]
      ]
     },
@@ -4521,6 +6144,39 @@ TRACK.modules.push({
      "kind": "warning",
      "text": "Sending every spoke-to-spoke and spoke-to-internet flow through a central inspection hub is attractive for security, but each traversal can pay transit attachment processing and appliance throughput charges. Decide flow by flow which inspection is required, and price the design before approving it.",
      "title": "The centralised inspection bill"
+    },
+    {
+     "type": "matrix",
+     "title": "Choosing a cloud path by volume and sensitivity",
+     "x": "Monthly data volume",
+     "y": "Performance and compliance sensitivity",
+     "quadrants": [
+      {
+       "title": "Private endpoints; private link if policy demands",
+       "items": [
+        "Regulated records, low volume"
+       ]
+      },
+      {
+       "title": "Diverse private connections",
+       "items": [
+        "Order platform, steady multi-Gbps"
+       ]
+      },
+      {
+       "title": "Internet VPN or public endpoints",
+       "items": [
+        "Dev and test, occasional transfers"
+       ]
+      },
+      {
+       "title": "Private connection for cost",
+       "items": [
+        "Bulk backups above break-even"
+       ]
+      }
+     ],
+     "caption": "Volume decides cost, sensitivity decides whether cost is allowed to decide. Re-check the quadrant when volumes cross the break-even point."
     },
     {
      "type": "case",
@@ -4651,6 +6307,17 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Design observability in: objectives for reachability, latency, loss, saturation and change health",
+      "Streaming telemetry and synthetic tests see what polling and device counters miss",
+      "Cloud network cost is created by traffic patterns — model egress, processing and port fees before approving",
+      "Use private endpoints, zone-aware placement and selective inspection without trading away resilience",
+      "Record pricing assumptions and review them; egress terms and regulation are changing"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -4732,7 +6399,7 @@ TRACK.modules.push({
    "id": "m8-l1",
    "title": "How Expert Design Scenarios Unfold",
    "subtitle": "Requirements arrive in pieces and change underfoot — learn to read, decide and adapt",
-   "minutes": 26,
+   "minutes": 29,
    "objectives": [
     "Describe how real design engagements and scenario assessments reveal information in stages",
     "Read a brief for hard constraints, soft preferences and hidden signals",
@@ -4907,6 +6574,40 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "matrix",
+     "title": "Triage for new information",
+     "x": "Impact on earlier decisions",
+     "y": "Certainty of the information",
+     "quadrants": [
+      {
+       "title": "Record it; update the detail it touches",
+       "items": [
+        "Confirmed change of site name or count"
+       ]
+      },
+      {
+       "title": "Re-evaluate the affected decisions now",
+       "items": [
+        "Signed acquisition",
+        "New regulation in force"
+       ]
+      },
+      {
+       "title": "Note as an assumption and monitor",
+       "items": [
+        "Rumoured reorganisation"
+       ]
+      },
+      {
+       "title": "Validate first; add a review trigger",
+       "items": [
+        "Announced but unconfirmed cloud region"
+       ]
+      }
+     ],
+     "caption": "Place each new fact by how certain it is and how many earlier decisions it touches. Only the top-right quadrant justifies reopening decisions immediately; uncertain news becomes an assumption with a validation action or a review trigger."
+    },
+    {
      "type": "callout",
      "kind": "warning",
      "text": "**Anchoring**: defending the first design after a constraint has changed, because changing feels like admitting error. **Thrashing**: redesigning everything every time something changes, so no decision ever stabilises. The expert path lies between: decisions are firm but traceable, and each one names the assumptions that would reopen it.",
@@ -5000,6 +6701,16 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Information arrives in stages; commit to decisions with stated assumptions",
+      "Separate hard constraints from soft preferences and brownfield realities",
+      "When something changes, classify it, trace its impact through the decision log and change only what it touches",
+      "Avoid both anchoring and thrashing"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -5065,7 +6776,7 @@ TRACK.modules.push({
    "id": "m8-l2",
    "title": "Migration Strategies, Risk & Rollback Design",
    "subtitle": "Getting from here to there is part of the design — and often the riskiest part",
-   "minutes": 30,
+   "minutes": 33,
    "objectives": [
     "Compare phased, parallel-run and big-bang migration strategies",
     "Design rollback points, go/no-go decisions and a point of no return",
@@ -5150,6 +6861,43 @@ TRACK.modules.push({
        "High, with rehearsal"
       ]
      ]
+    },
+    {
+     "type": "timeline",
+     "title": "A phased WAN migration programme",
+     "items": [
+      {
+       "when": "Month 1–2",
+       "label": "Prepare and interconnect",
+       "text": "Hubs join old and new WANs; coexistence tested"
+      },
+      {
+       "when": "Month 3",
+       "label": "Pilot",
+       "text": "Two representative, low-impact sites"
+      },
+      {
+       "when": "Months 4–8",
+       "label": "Waves by tier",
+       "text": "Each wave: pre-check, cut-over, validate, hypercare"
+      },
+      {
+       "when": "Month 9",
+       "label": "Go/no-go for decommission",
+       "text": "Formal decision by the sponsor"
+      },
+      {
+       "when": "Month 10",
+       "label": "Point of no return",
+       "text": "Old circuits ceased; fix forward only"
+      },
+      {
+       "when": "Month 11",
+       "label": "Decommission and close",
+       "text": "Records and source of truth updated"
+      }
+     ],
+     "caption": "Illustrative durations for a 400-site estate. The point of no return — ceasing the old circuits — comes only after every wave has been through hypercare and the business has signed off."
     },
     {
      "type": "framework",
@@ -5241,6 +6989,29 @@ TRACK.modules.push({
        "meaning": "Compare per wave to choose sequencing: low-exposure waves first build evidence for high-exposure ones."
       }
      ]
+    },
+    {
+     "type": "chart",
+     "title": "The cut-over night as a time budget",
+     "kind": "bar",
+     "labels": [
+      "Execute and validate",
+      "Rollback (if needed)",
+      "Safety margin"
+     ],
+     "series": [
+      {
+       "name": "Minutes",
+       "values": [
+        230,
+        50,
+        20
+       ]
+      }
+     ],
+     "unit": " min",
+     "yLabel": "Minutes",
+     "caption": "Computed from the worked example: a window from 00:00 to 05:00, a 50-minute rollback and a 20-minute margin leave a go/no-go decision at 03:50. Everything to the left of that point is time to execute and validate."
     },
     {
      "type": "scenario",
@@ -5381,6 +7152,16 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "The intermediate states are part of the design: plan coexistence as carefully as the end state",
+      "Phased waves suit large estates, parallel run suits zero-interruption services, big bang suits small or non-interoperable cases",
+      "Every step needs a rollback method, duration and trigger; compute the go/no-go time and keep to it",
+      "Gate the point of no return with a formal decision"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -5446,7 +7227,7 @@ TRACK.modules.push({
    "id": "m8-l3",
    "title": "Communicating Designs to Executives",
    "subtitle": "Turn architecture into decisions, money and risk that leaders can act on",
-   "minutes": 24,
+   "minutes": 27,
    "objectives": [
     "Structure a one-page design brief for an executive audience",
     "Translate technical properties into business consequences",
@@ -5578,6 +7359,28 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "chart",
+     "title": "Expected annual loss with and without a second site",
+     "kind": "bar",
+     "labels": [
+      "ALE today",
+      "ALE with second site",
+      "Annual cost of second site"
+     ],
+     "series": [
+      {
+       "name": "Per year",
+       "values": [
+        240000,
+        7500,
+        180000
+       ]
+      }
+     ],
+     "yLabel": "Currency units",
+     "caption": "Computed from the worked example. The second site costs 180,000 a year but removes about 232,500 of expected annual loss, which is the comparison a finance leader wants to see."
+    },
+    {
      "type": "callout",
      "kind": "warning",
      "text": "Opening with topology diagrams; using acronyms without translation; presenting one option as if there were no alternative; hiding the cost in an appendix; or claiming 'zero risk'. Executives trust designers who show trade-offs and name residual risk.",
@@ -5612,6 +7415,39 @@ TRACK.modules.push({
        "text": "'We need approval for 180,000 a year and a business owner for DR testing.'"
       }
      ]
+    },
+    {
+     "type": "matrix",
+     "title": "Options on cost and risk reduction",
+     "x": "Annual cost",
+     "y": "Risk reduction",
+     "quadrants": [
+      {
+       "title": "Best value — recommend",
+       "items": [
+        "Warm standby: removes about 97% of expected outage cost"
+       ]
+      },
+      {
+       "title": "Strong but costly",
+       "items": [
+        "Active/active sites"
+       ]
+      },
+      {
+       "title": "Cheap, risk unchanged",
+       "items": [
+        "Do nothing"
+       ]
+      },
+      {
+       "title": "Avoid: cost without benefit",
+       "items": [
+        "Gold-plated extras with no requirement"
+       ]
+      }
+     ],
+     "caption": "An executive view of the options in the trade-off example. The recommendation sits where most of the expected loss is removed for a moderate cost; active/active becomes the better buy only if volumes or penalties grow."
     },
     {
      "type": "scenario",
@@ -5721,6 +7557,16 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Executives approve decisions — cost, risk accepted, owner — not designs",
+      "One page: context, decision required, options including do nothing, recommendation, residual risk, the ask",
+      "Translate technical properties into business consequences",
+      "Quantify with expected annual loss against annual cost, and name what would change your mind"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -5786,7 +7632,7 @@ TRACK.modules.push({
    "id": "m8-l4",
    "title": "Mock Scenario: Kestrel Freight",
    "subtitle": "A full multi-stage design across all eight blueprint sheets",
-   "minutes": 40,
+   "minutes": 43,
    "objectives": [
     "Apply every sheet of the ZCDE Design Blueprint to one evolving scenario",
     "Make and revise decisions as requirements arrive in stages",
@@ -5854,6 +7700,43 @@ TRACK.modules.push({
        "Phased design; prefer operating-cost services and automation"
       ]
      ]
+    },
+    {
+     "type": "timeline",
+     "title": "How the Kestrel scenario unfolds",
+     "items": [
+      {
+       "when": "Week 0",
+       "label": "Brief",
+       "text": "API at 99.95%, depot survivability, in-country data"
+      },
+      {
+       "when": "Week 2",
+       "label": "API placement",
+       "text": "In-country cloud region across zones"
+      },
+      {
+       "when": "Week 4",
+       "label": "Depots and WAN",
+       "text": "Local buffering, dual-transport overlay"
+      },
+      {
+       "when": "Month 6",
+       "label": "Acquisition of Swiftline",
+       "text": "Overlapping addresses, four-month target"
+      },
+      {
+       "when": "Month 7",
+       "label": "Insurer conditions",
+       "text": "OT segmentation, MFA access, monitoring"
+      },
+      {
+       "when": "Month 9",
+       "label": "Budget cut of 25%",
+       "text": "Re-sequence; protect launch and insurer items"
+      }
+     ],
+     "caption": "Information arrives in stages, as it does in real engagements. Note which earlier decisions each stage leaves untouched — that is the discipline the scenario tests."
     },
     {
      "type": "scenario",
@@ -6015,6 +7898,118 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "topology",
+     "title": "Kestrel Freight target design",
+     "nodes": [
+      {
+       "id": "api",
+       "kind": "cloud",
+       "label": "Tracking API",
+       "x": 3.5,
+       "y": 0,
+       "sub": "3 zones, in-country"
+      },
+      {
+       "id": "dc",
+       "kind": "server",
+       "label": "Owned DC",
+       "x": 1,
+       "y": 2.5,
+       "sub": "Shipment DB"
+      },
+      {
+       "id": "sw",
+       "kind": "router",
+       "label": "Swiftline edge",
+       "x": 6.5,
+       "y": 1.5,
+       "sub": "BGP + NAT boundary"
+      },
+      {
+       "id": "dep",
+       "kind": "router",
+       "label": "140 depots",
+       "x": 6,
+       "y": 5,
+       "sub": "Broadband + 4G, buffer"
+      },
+      {
+       "id": "dmz",
+       "kind": "firewall",
+       "label": "Industrial DMZ",
+       "x": 1,
+       "y": 4.5
+      },
+      {
+       "id": "ot",
+       "kind": "controller",
+       "label": "Sorting-hub OT",
+       "x": 1,
+       "y": 6
+      }
+     ],
+     "links": [
+      {
+       "a": "dc",
+       "b": "api",
+       "label": "private + VPN",
+       "style": "bold"
+      },
+      {
+       "a": "dep",
+       "b": "api",
+       "label": "direct breakout",
+       "style": "tunnel"
+      },
+      {
+       "a": "dep",
+       "b": "dc",
+       "label": "overlay",
+       "style": "tunnel"
+      },
+      {
+       "a": "sw",
+       "b": "dc",
+       "label": "translated BGP",
+       "style": "dashed"
+      },
+      {
+       "a": "sw",
+       "b": "api",
+       "label": "API integration",
+       "style": "dashed"
+      },
+      {
+       "a": "dc",
+       "b": "dmz"
+      },
+      {
+       "a": "dmz",
+       "b": "ot",
+       "label": "brokered only"
+      }
+     ],
+     "zones": [
+      {
+       "label": "Cloud region",
+       "x": 3.5,
+       "y": 0,
+       "w": 1,
+       "h": 1,
+       "tone": "accent"
+      },
+      {
+       "label": "OT zone",
+       "x": 1,
+       "y": 6,
+       "w": 1,
+       "h": 1,
+       "tone": "warn"
+      }
+     ],
+     "caption": "The API runs in an in-country cloud region across zones with a read copy of tracking data; depots buffer locally and break out directly to the API; hub OT sits behind an industrial DMZ; Swiftline joins at one translated BGP boundary."
+    },
+    {
      "type": "case",
      "title": "Stage 6 — The final brief",
      "context": "Nine months in, the board cuts the remaining network budget by 25% because of a fuel-price shock, and asks whether the tracking API can still launch on time. The API front end is built in the cloud across zones; private connectivity to the data centre is one connection with a VPN backup; depot overlays are deployed at 90 of 140 Kestrel depots; Swiftline is connected at a translated boundary; hub OT segmentation is designed but not yet enforced.",
@@ -6106,6 +8101,16 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Extract drivers, hard constraints and brownfield risks before choosing anything",
+      "Use operating-cost services and local survivability when capital and staff are tight",
+      "Absorb new stages by tracing impact: most earlier decisions should survive",
+      "Under budget pressure, protect hard constraints and the largest risks, and make deferred risk explicit"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -6171,7 +8176,7 @@ TRACK.modules.push({
    "id": "m8-l5",
    "title": "Exam Strategy & Capstone Introduction",
    "subtitle": "Think like an assessor, answer like an architect, and prepare your capstone design",
-   "minutes": 26,
+   "minutes": 29,
    "objectives": [
     "Apply a repeatable method to scenario-based design questions",
     "Recognise common distractor patterns in design options",
@@ -6252,6 +8257,49 @@ TRACK.modules.push({
        "Skills and operations are constraints too"
       ]
      ]
+    },
+    {
+     "type": "tree",
+     "title": "Eliminating distractors",
+     "root": {
+      "label": "Each option",
+      "children": [
+       {
+        "label": "Breaks a hard constraint?",
+        "children": [
+         {
+          "label": "Eliminate"
+         }
+        ]
+       },
+       {
+        "label": "Solves a different problem?",
+        "children": [
+         {
+          "label": "Eliminate"
+         }
+        ]
+       },
+       {
+        "label": "Wrong order for a FIRST question?",
+        "children": [
+         {
+          "label": "Eliminate"
+         }
+        ]
+       },
+       {
+        "label": "Survivors",
+        "children": [
+         {
+          "label": "Simplest sufficient",
+          "text": "that serves the business driver"
+         }
+        ]
+       }
+      ]
+     },
+     "caption": "Apply the tests in order; most items leave one option standing after the first three. If two survive, the business driver breaks the tie."
     },
     {
      "type": "framework",
@@ -6379,6 +8427,38 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "timeline",
+     "title": "A suggested capstone schedule",
+     "items": [
+      {
+       "when": "Weeks 1–2",
+       "label": "Scenario and requirements register",
+       "text": "Agree constraints and assumptions"
+      },
+      {
+       "when": "Weeks 3–5",
+       "label": "Design sheet by sheet",
+       "text": "Decision log and matrices"
+      },
+      {
+       "when": "Week 6",
+       "label": "Stress-test",
+       "text": "Inject a change; trace its impact"
+      },
+      {
+       "when": "Week 7",
+       "label": "Migration plan",
+       "text": "Waves, rollback, go/no-go timing"
+      },
+      {
+       "when": "Week 8",
+       "label": "Brief and defend",
+       "text": "Ten slides and three hardest trade-offs"
+      }
+     ],
+     "caption": "Illustrative eight-week plan for a part-time candidate. Agreeing the requirements register before designing, and leaving time to stress-test, matter more than the exact weeks."
+    },
+    {
      "type": "template",
      "title": "Capstone review scorecard",
      "purpose": "Self-assess and peer-review a capstone design against the criteria reviewers use, with evidence for each score.",
@@ -6460,6 +8540,16 @@ TRACK.modules.push({
        "term": "Scorecard",
        "def": "A weighted set of criteria used to assess a design consistently."
       }
+     ]
+    },
+    {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Scenario questions test judgement under constraints, not recall",
+      "Find the binding constraint, eliminate violators, check the qualifier, then choose the simplest sufficient option",
+      "Distractors are often technically superior, out of order or operationally unrealistic",
+      "The capstone is a design defence: traceability, quantified trade-offs, honest residual risk and a safe migration"
      ]
     },
     {

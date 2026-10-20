@@ -17,7 +17,7 @@ TRACK.modules.push({
    "id": "m1-l1",
    "title": "Requirements That Drive Design",
    "subtitle": "Separate what the business needs from how the network might deliver it",
-   "minutes": 25,
+   "minutes": 28,
    "objectives": [
     "Distinguish business requirements, technical requirements, constraints and assumptions",
     "Map stakeholders to the requirements they own and the risks they carry",
@@ -46,7 +46,7 @@ TRACK.modules.push({
       {
        "label": "CON",
        "title": "Constraint",
-       "text": "A fixed limit you must design within and cannot trade away: budget ceiling, a mandated vendor framework, an existing fibre plant, a regulator's data-residency rule, a change freeze, the skills of the operations team."
+       "text": "A fixed limit you must design within and cannot trade away: budget ceiling, a mandated vendor framework, an existing fibre plant, a regulator's data-residency rule, the power and cooling envelope of a building or data hall, a change freeze, the skills of the operations team."
       },
       {
        "label": "ASM",
@@ -88,6 +88,12 @@ TRACK.modules.push({
     },
     {
      "type": "callout",
+     "kind": "pro",
+     "title": "Requirement types a 2026 design must not miss",
+     "text": "Beyond bandwidth and availability, current briefs routinely hide five decisive inputs: **power and cooling** (a GPU rack or a Wi-Fi 7 floor can exceed what the room or the switch can supply), **sustainability targets** (energy per port, equipment lifetime, reporting duties), **operational-resilience regulation** that demands tested recovery, **IPv6 policy** (some public bodies and providers now expect IPv6-only or IPv6-mostly networks), and **operability** — whether the design can be run from a source of truth with automation and telemetry. Ask about each one explicitly; stakeholders rarely volunteer them."
+    },
+    {
+     "type": "callout",
      "kind": "insight",
      "text": "A constraint removes options from the table; a preference only weights them. If the CIO says \"we would like to stay with our current switching vendor\", that is a preference you score in a decision matrix. If the procurement contract says \"all purchases must come from framework X until 2028\", that is a constraint and options outside it are not options at all. Misclassifying one as the other is one of the most common causes of a rejected design.",
      "title": "Constraints are not preferences"
@@ -124,6 +130,47 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "tree",
+     "title": "Tracing one business statement to testable requirements",
+     "root": {
+      "label": "BR: \"The tills must never stop\"",
+      "text": "Owner: retail operations director",
+      "children": [
+       {
+        "label": "TR-1 Payment survives any single failure",
+        "text": "Recovery in 30 s or less",
+        "children": [
+         {
+          "label": "CON: fixed capital budget",
+          "text": "Excludes a second private circuit per store"
+         }
+        ]
+       },
+       {
+        "label": "TR-2 Till works offline for 2 h",
+        "text": "Store-and-forward on the till",
+        "children": [
+         {
+          "label": "ASM: card scheme allows offline limits",
+          "text": "Validate with the acquirer"
+         }
+        ]
+       },
+       {
+        "label": "TR-3 Card data isolated",
+        "text": "Scope reduction for audit",
+        "children": [
+         {
+          "label": "CON: payment-card standard",
+          "text": "Segmentation must be tested"
+         }
+        ]
+       }
+      ]
+     },
+     "caption": "Read the tree top-down: one vague statement becomes several measurable requirements, each tied to the constraint or assumption that shapes it. Every leaf should later trace to a design decision."
+    },
+    {
      "type": "steps",
      "title": "Identifying stakeholders and what they own",
      "items": [
@@ -144,6 +191,46 @@ TRACK.modules.push({
        "text": "Finance measures cost per site, operations measures mean time to repair, security measures audit findings. Your design must show progress on each measure that matters."
       }
      ]
+    },
+    {
+     "type": "matrix",
+     "title": "Stakeholder influence and interest",
+     "x": "Interest in the project",
+     "y": "Influence over the outcome",
+     "quadrants": [
+      {
+       "title": "Keep satisfied — hidden blockers",
+       "items": [
+        "Internal audit",
+        "Regulator",
+        "Procurement"
+       ]
+      },
+      {
+       "title": "Manage closely",
+       "items": [
+        "Sponsor",
+        "Head of operations",
+        "Security lead"
+       ]
+      },
+      {
+       "title": "Monitor",
+       "items": [
+        "Facilities contractors",
+        "Peripheral business units"
+       ]
+      },
+      {
+       "title": "Keep informed",
+       "items": [
+        "Application owners",
+        "Service desk",
+        "Branch managers"
+       ]
+      }
+     ],
+     "caption": "Plot each stakeholder once. The dangerous quadrant is top-left: people who can block the design late but are not paying attention now — brief them early and briefly."
     },
     {
      "type": "callout",
@@ -331,7 +418,7 @@ TRACK.modules.push({
    "id": "m1-l2",
    "title": "Gathering and Validating Requirements",
    "subtitle": "Turn interviews, data and documents into a trustworthy baseline",
-   "minutes": 25,
+   "minutes": 28,
    "objectives": [
     "Plan a requirements-gathering approach that combines people, data and documents",
     "Baseline the current state with measured evidence rather than opinion",
@@ -420,7 +507,7 @@ TRACK.modules.push({
      "items": [
       {
        "title": "Inventory",
-       "text": "Devices, software levels, end-of-support dates, circuits and contract terms. You cannot plan a migration without knowing what exists."
+       "text": "Devices, software levels, end-of-support dates, circuits and contract terms, plus power draw and the rack, power and cooling headroom at each site. You cannot plan a migration without knowing what exists."
       },
       {
        "title": "Topology and dependencies",
@@ -436,7 +523,7 @@ TRACK.modules.push({
       },
       {
        "title": "Operations",
-       "text": "Tooling, monitoring coverage, automation maturity, team size and on-call model. These set realistic limits on new complexity."
+       "text": "Tooling, monitoring and telemetry coverage, automation maturity, whether a usable source of truth exists, team size and on-call model. These set realistic limits on new complexity."
       }
      ]
     },
@@ -445,6 +532,39 @@ TRACK.modules.push({
      "kind": "pro",
      "text": "A 30% average utilisation can hide a link that saturates for twenty minutes every morning when backups overlap with log-ins. Size and prioritise from the 95th percentile and the observed peak over a representative period, and ask the business which periods matter most — month-end, exam week, a shipping season.",
      "title": "Measure peaks, not averages"
+    },
+    {
+     "type": "chart",
+     "title": "Why averages mislead: one day on a branch uplink",
+     "kind": "line",
+     "labels": [
+      "00:00",
+      "03:00",
+      "06:00",
+      "09:00",
+      "12:00",
+      "15:00",
+      "18:00",
+      "21:00"
+     ],
+     "series": [
+      {
+       "name": "Uplink utilisation",
+       "values": [
+        12,
+        35,
+        18,
+        98,
+        46,
+        40,
+        22,
+        15
+       ]
+      }
+     ],
+     "unit": "%",
+     "yLabel": "Utilisation",
+     "caption": "Illustrative data. The average of these samples is about 36%, yet the link is close to saturation at 09:00, when log-ins overlap with backups. Size from the 95th percentile and the observed peak, not from the average."
     },
     {
      "type": "framework",
@@ -471,6 +591,42 @@ TRACK.modules.push({
        "text": "Explicitly out of scope for this phase — recording it prevents silent scope creep."
       }
      ]
+    },
+    {
+     "type": "matrix",
+     "title": "Value against effort: a starting point for MoSCoW",
+     "x": "Effort and cost to deliver",
+     "y": "Business value",
+     "quadrants": [
+      {
+       "title": "Quick wins — usually Must or Should",
+       "items": [
+        "Guest isolation",
+        "Second transport for tills"
+       ]
+      },
+      {
+       "title": "Major work — Must only if the driver demands it",
+       "items": [
+        "Data-centre interconnect rebuild",
+        "Campus fabric"
+       ]
+      },
+      {
+       "title": "Could have",
+       "items": [
+        "Cosmetic naming clean-up",
+        "Extra dashboards"
+       ]
+      },
+      {
+       "title": "Won't have this time",
+       "items": [
+        "Multi-cloud failover for a minor application"
+       ]
+      }
+     ],
+     "caption": "Use the grid in the prioritisation workshop, then let the owners assign MoSCoW labels. Anything legally or contractually required is a Must wherever it lands on the grid."
     },
     {
      "type": "callout",
@@ -561,6 +717,17 @@ TRACK.modules.push({
      "prompt": "Which data source do you most often skip when gathering requirements — incident history, traffic peaks, contracts, or operations capability? What design mistake could that gap cause in your environment?"
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Gather from three sources — people, data and documents — and test each against the others",
+      "Baseline with measured evidence over a representative business cycle, including power, telemetry and operations capability",
+      "Size from the 95th percentile and observed peaks, never from averages",
+      "Few Musts, explicit Won't-haves, and conflicts handed to their owners with options",
+      "Play the result back and obtain written sign-off before comparing designs"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -626,7 +793,7 @@ TRACK.modules.push({
    "id": "m1-l3",
    "title": "Design Principles and Trade-off Analysis",
    "subtitle": "Use modularity, hierarchy and simplicity — and score options honestly",
-   "minutes": 30,
+   "minutes": 33,
    "objectives": [
     "Apply the core design principles and explain what each one buys",
     "Build and use a weighted decision matrix, including sensitivity checks",
@@ -670,6 +837,11 @@ TRACK.modules.push({
        "label": "OPS",
        "title": "Operability",
        "text": "Design for the people and tools that run the network: consistent naming, standard templates, telemetry, and a safe way to change things."
+      },
+      {
+       "label": "SUS",
+       "title": "Sustainability",
+       "text": "Treat power, cooling and equipment lifetime as design criteria: right-size capacity, prefer efficient optics and platforms, and count energy in the lifetime cost, not as an afterthought."
       }
      ]
     },
@@ -688,6 +860,7 @@ TRACK.modules.push({
        "items": [
         "Capital: hardware, licences, build",
         "Operating: circuits, support, power, staff time",
+        "Energy: power and cooling over the asset life",
         "Exit: migration and contract penalties",
         "Opportunity: what else the money could fund"
        ]
@@ -711,6 +884,39 @@ TRACK.modules.push({
        ]
       }
      ]
+    },
+    {
+     "type": "matrix",
+     "title": "Requirement fit against complexity",
+     "x": "Operational complexity",
+     "y": "Requirements met",
+     "quadrants": [
+      {
+       "title": "Simplest sufficient — preferred",
+       "items": [
+        "VRF-lite with firewall policy for a small campus"
+       ]
+      },
+      {
+       "title": "Justified only by a stated requirement",
+       "items": [
+        "Overlay fabric for policy at very large scale"
+       ]
+      },
+      {
+       "title": "Cheap but insufficient — exclude",
+       "items": [
+        "Flat network with port ACLs"
+       ]
+      },
+      {
+       "title": "Avoid — complex and still short",
+       "items": [
+        "Three overlays the team cannot run"
+       ]
+      }
+     ],
+     "caption": "Options in the top-left meet the requirements with the least machinery; that is where the recommendation usually sits. Top-right options need a requirement that justifies their complexity."
     },
     {
      "type": "formula",
@@ -774,6 +980,36 @@ TRACK.modules.push({
        "3.70"
       ]
      ]
+    },
+    {
+     "type": "chart",
+     "title": "Sensitivity check on the branch WAN matrix",
+     "kind": "bar",
+     "labels": [
+      "Private MPLS only",
+      "Dual internet + overlay",
+      "MPLS + internet overlay"
+     ],
+     "series": [
+      {
+       "name": "Agreed weights",
+       "values": [
+        3.25,
+        4.1,
+        3.7
+       ]
+      },
+      {
+       "name": "Operability 30%, cost 20%",
+       "values": [
+        3.55,
+        3.9,
+        3.7
+       ]
+      }
+     ],
+     "yLabel": "Weighted score",
+     "caption": "Computed from the worked matrix above. Shifting ten points of weight from cost to operability narrows the gap, but dual internet with an overlay still wins, so the recommendation is reasonably robust."
     },
     {
      "type": "callout",
@@ -888,6 +1124,17 @@ TRACK.modules.push({
      "prompt": "Pick a design you inherited that you consider too complex. Which principle was traded away, and what requirement — if any — justified that trade at the time?"
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Principles are reusable answers: modularity contains change, hierarchy contains state, simplicity contains risk",
+      "Count complexity, energy and lifetime operations as real costs alongside capital",
+      "Agree criteria and weights before scoring, and exclude constraint-breaking options rather than scoring them low",
+      "Run a sensitivity check; if a plausible re-weighting flips the winner, give the choice to the owners",
+      "Prefer the simplest option that meets every requirement"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -953,7 +1200,7 @@ TRACK.modules.push({
    "id": "m1-l4",
    "title": "Design Decisions, Documents and Scenarios",
    "subtitle": "Write decisions others can audit and read scenarios like an examiner",
-   "minutes": 30,
+   "minutes": 33,
    "objectives": [
     "Write a design decision record that captures context, options and consequences",
     "Distinguish the content and audience of high-level and low-level design documents",
@@ -963,6 +1210,38 @@ TRACK.modules.push({
     {
      "type": "text",
      "text": "A design that cannot be explained cannot be defended, reviewed or safely changed. Experts therefore record **decisions**, not just diagrams. Each decision states the context, the options considered, the choice and its consequences — so that a reviewer, an auditor or the next architect understands not only *what* was built but *why*, and knows what would have to change for the decision to be revisited."
+    },
+    {
+     "type": "cycle",
+     "title": "The design lifecycle",
+     "center": "Decision log",
+     "items": [
+      {
+       "label": "Requirements",
+       "text": "Register, owners, priorities"
+      },
+      {
+       "label": "Design",
+       "text": "Options, decisions, HLD and LLD"
+      },
+      {
+       "label": "Validate",
+       "text": "Review, model or digital twin, pilot"
+      },
+      {
+       "label": "Implement",
+       "text": "Pipeline-driven build in waves"
+      },
+      {
+       "label": "Operate & observe",
+       "text": "Telemetry against objectives"
+      },
+      {
+       "label": "Review",
+       "text": "Triggers met? Reopen decisions"
+      }
+     ],
+     "caption": "Decisions are made in the design stage but checked at every turn of the loop. Observed behaviour in operation feeds the next round of requirements, which is why each decision record carries a review trigger."
     },
     {
      "type": "framework",
@@ -996,7 +1275,7 @@ TRACK.modules.push({
       {
        "label": "REV",
        "title": "Status and review trigger",
-       "text": "Proposed, accepted or superseded, plus the condition that would reopen it — for example, if branch count exceeds 300."
+       "text": "Proposed, accepted or superseded, plus the condition that would reopen it — for example, if branch count exceeds 300. Keeping records in version control next to the source of truth lets reviewers see how each decision evolved."
       }
      ]
     },
@@ -1025,6 +1304,52 @@ TRACK.modules.push({
        ]
       }
      ]
+    },
+    {
+     "type": "tree",
+     "title": "A complete design document set",
+     "root": {
+      "label": "Design package",
+      "children": [
+       {
+        "label": "HLD",
+        "text": "Why and what",
+        "children": [
+         {
+          "label": "Decision records"
+         },
+         {
+          "label": "Architecture views"
+         }
+        ]
+       },
+       {
+        "label": "LLD",
+        "text": "How",
+        "children": [
+         {
+          "label": "Address and VRF plan"
+         },
+         {
+          "label": "Build and test plan"
+         }
+        ]
+       },
+       {
+        "label": "Operations set",
+        "text": "Keeping it true",
+        "children": [
+         {
+          "label": "Source of truth"
+         },
+         {
+          "label": "Runbooks and SLOs"
+         }
+        ]
+       }
+      ]
+     },
+     "caption": "The HLD explains why, the LLD explains how, and the operations set keeps the design true after go-live. The source of truth is the machine-readable form of the LLD."
     },
     {
      "type": "template",
@@ -1060,7 +1385,8 @@ TRACK.modules.push({
       "Design principles applied",
       "Logical and physical architecture overview",
       "Key design decisions with options and rationale",
-      "Resilience, security, management and operations model",
+      "Resilience, security, management and operations model, including source of truth, automation and telemetry",
+      "Power, cooling and sustainability considerations where they constrain the design",
       "Migration approach, risks and open issues"
      ],
      "title": "Typical HLD sections"
@@ -1182,6 +1508,17 @@ TRACK.modules.push({
      "prompt": "Write a one-paragraph decision record for a choice you made recently. Did you list the options you rejected and the consequences you accepted? What review trigger would you add now?"
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Record decisions, not just diagrams: context, options, choice, consequences and a review trigger",
+      "The HLD answers why and what for decision-makers; the LLD answers how for implementers",
+      "Admit negative consequences — it builds trust and tells operations what to watch",
+      "Read scenarios question-first, mark the binding constraint, eliminate violators, then choose the simplest sufficient option",
+      "A FIRST question is about sequence: validate a decisive unknown before designing"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -1262,7 +1599,7 @@ TRACK.modules.push({
    "id": "m2-l1",
    "title": "Campus Hierarchy Models",
    "subtitle": "Three-tier, collapsed core and when each one earns its place",
-   "minutes": 25,
+   "minutes": 28,
    "objectives": [
     "Explain the role of the access, distribution and core layers",
     "Choose between a three-tier and a collapsed-core campus from requirements",
@@ -1299,12 +1636,158 @@ TRACK.modules.push({
        "label": "Access",
        "parts": [
         "Endpoint and wireless access-point ports",
-        "Power over Ethernet, port security, 802.1X",
+        "Power over Ethernet (up to about 90 W per port), port security, 802.1X",
         "QoS marking and trust boundary",
         "VLAN or segment assignment"
        ]
       }
      ]
+    },
+    {
+     "type": "topology",
+     "title": "A three-tier campus with two distribution blocks",
+     "nodes": [
+      {
+       "id": "c1",
+       "kind": "l3switch",
+       "label": "CORE-1",
+       "x": 2,
+       "y": 0
+      },
+      {
+       "id": "c2",
+       "kind": "l3switch",
+       "label": "CORE-2",
+       "x": 5,
+       "y": 0
+      },
+      {
+       "id": "da1",
+       "kind": "l3switch",
+       "label": "DIST-A1",
+       "x": 0,
+       "y": 2
+      },
+      {
+       "id": "da2",
+       "kind": "l3switch",
+       "label": "DIST-A2",
+       "x": 2,
+       "y": 2
+      },
+      {
+       "id": "db1",
+       "kind": "l3switch",
+       "label": "DIST-B1",
+       "x": 5,
+       "y": 2
+      },
+      {
+       "id": "db2",
+       "kind": "l3switch",
+       "label": "DIST-B2",
+       "x": 7,
+       "y": 2
+      },
+      {
+       "id": "aa",
+       "kind": "switch",
+       "label": "Access stacks",
+       "x": 1,
+       "y": 4,
+       "sub": "Building A, 2×25G each"
+      },
+      {
+       "id": "ab",
+       "kind": "switch",
+       "label": "Access stacks",
+       "x": 6,
+       "y": 4,
+       "sub": "Building B, 2×25G each"
+      }
+     ],
+     "links": [
+      {
+       "a": "c1",
+       "b": "c2",
+       "label": "2×100G"
+      },
+      {
+       "a": "c1",
+       "b": "da1"
+      },
+      {
+       "a": "c1",
+       "b": "da2",
+       "label": "100G"
+      },
+      {
+       "a": "c2",
+       "b": "da1"
+      },
+      {
+       "a": "c2",
+       "b": "da2"
+      },
+      {
+       "a": "c1",
+       "b": "db1"
+      },
+      {
+       "a": "c1",
+       "b": "db2"
+      },
+      {
+       "a": "c2",
+       "b": "db1",
+       "label": "100G"
+      },
+      {
+       "a": "c2",
+       "b": "db2"
+      },
+      {
+       "a": "da1",
+       "b": "aa"
+      },
+      {
+       "a": "da2",
+       "b": "aa"
+      },
+      {
+       "a": "db1",
+       "b": "ab"
+      },
+      {
+       "a": "db2",
+       "b": "ab"
+      }
+     ],
+     "zones": [
+      {
+       "label": "Core",
+       "x": 2,
+       "y": 0,
+       "w": 4,
+       "h": 1,
+       "tone": "accent"
+      },
+      {
+       "label": "Block A",
+       "x": 0,
+       "y": 2,
+       "w": 3,
+       "h": 3
+      },
+      {
+       "label": "Block B",
+       "x": 5,
+       "y": 2,
+       "w": 3,
+       "h": 3
+      }
+     ],
+     "caption": "Each building is a distribution block with its own pair; the core only joins blocks. Adding a third building means two new uplink pairs to the core, not links to every existing block."
     },
     {
      "type": "compare",
@@ -1337,6 +1820,48 @@ TRACK.modules.push({
      "kind": "insight",
      "text": "Without a core, every distribution pair must connect to every other pair to avoid hair-pinning traffic, and the number of inter-block links grows roughly with the square of the number of blocks. A dedicated core turns that mesh into a star: each new block needs only its uplinks to the core. When a campus reaches several distribution blocks, or buildings with separate fibre plants, the core usually pays for itself in simplicity.",
      "title": "Why a separate core appears"
+    },
+    {
+     "type": "chart",
+     "title": "Inter-block links: full mesh versus a core pair",
+     "kind": "line",
+     "labels": [
+      "2 blocks",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8"
+     ],
+     "series": [
+      {
+       "name": "Full mesh",
+       "values": [
+        1,
+        3,
+        6,
+        10,
+        15,
+        21,
+        28
+       ]
+      },
+      {
+       "name": "Core pair",
+       "values": [
+        4,
+        6,
+        8,
+        10,
+        12,
+        14,
+        16
+       ]
+      }
+     ],
+     "yLabel": "Links",
+     "caption": "Computed with one link per block pair in the mesh and one uplink from each block to each of two core switches. The mesh grows with the square of the block count; the core grows linearly."
     },
     {
      "type": "table",
@@ -1405,6 +1930,12 @@ TRACK.modules.push({
      "kind": "pro",
      "text": "Older guidelines quoted ratios such as 20:1 at access and 4:1 at distribution, from an era of light, bursty office traffic. Wi-Fi 6/7 access points, video and large file sync change the picture. Size from measured peaks and the applications in each block, check the ratio *after a single uplink failure*, and pick uplink speeds that keep the post-failure ratio acceptable.",
      "title": "Oversubscription is a decision, not a fixed ratio"
+    },
+    {
+     "type": "callout",
+     "kind": "insight",
+     "title": "Power is a campus design constraint",
+     "text": "Wi-Fi 7 access points, cameras and building systems draw more Power over Ethernet than older designs assumed. Check the PoE budget of each access switch with every port at its planned class, the power and cooling of each wiring closet, and whether the switch keeps powering devices during a supervisor restart. Energy-efficient Ethernet and powering down unused ports reduce running cost without touching resilience."
     },
     {
      "type": "scenario",
@@ -1510,6 +2041,16 @@ TRACK.modules.push({
      "prompt": "Count the distribution blocks in a campus you know. Would a collapsed core still serve it if the estate doubled? Where would the first bottleneck appear — ports, links, or change risk?"
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Each layer solves a problem: access attaches and enforces, distribution aggregates and summarises, the core joins blocks",
+      "A collapsed core suits one building and a small team; a separate core appears when blocks multiply or buildings are added",
+      "State oversubscription for normal and single-uplink-failure conditions",
+      "PoE budgets and closet power and cooling are part of access-layer sizing"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -1564,7 +2105,7 @@ TRACK.modules.push({
    "id": "m2-l2",
    "title": "The L2/L3 Boundary and Campus Fabrics",
    "subtitle": "Where routing starts decides your failure domains, mobility and segmentation",
-   "minutes": 30,
+   "minutes": 33,
    "objectives": [
     "Compare layer 2 access, routed access and overlay fabric designs",
     "Explain the failure-domain and mobility consequences of each boundary choice",
@@ -1683,6 +2224,168 @@ TRACK.modules.push({
        ]
       }
      ]
+    },
+    {
+     "type": "text",
+     "text": "Most new campus fabrics in 2026 use a standards-based **BGP EVPN** control plane with **VXLAN** encapsulation, the same family of protocols used in data centres; some use a location-mapping control plane (such as LISP) instead. Either way the shape is the same: a routed underlay, edge switches acting as tunnel endpoints with an anycast gateway, and border nodes that hand traffic to the rest of the network."
+    },
+    {
+     "type": "topology",
+     "title": "An EVPN-VXLAN campus fabric",
+     "nodes": [
+      {
+       "id": "wan",
+       "kind": "cloud",
+       "label": "WAN / firewalls",
+       "x": 3.5,
+       "y": 0
+      },
+      {
+       "id": "b1",
+       "kind": "router",
+       "label": "BORDER-1",
+       "x": 2,
+       "y": 1
+      },
+      {
+       "id": "b2",
+       "kind": "router",
+       "label": "BORDER-2",
+       "x": 5,
+       "y": 1
+      },
+      {
+       "id": "s1",
+       "kind": "l3switch",
+       "label": "SPINE-1",
+       "x": 2,
+       "y": 3,
+       "sub": "Underlay + EVPN RR"
+      },
+      {
+       "id": "s2",
+       "kind": "l3switch",
+       "label": "SPINE-2",
+       "x": 5,
+       "y": 3,
+       "sub": "Underlay + EVPN RR"
+      },
+      {
+       "id": "e1",
+       "kind": "switch",
+       "label": "EDGE-1",
+       "x": 0,
+       "y": 5,
+       "sub": "VTEP, anycast GW"
+      },
+      {
+       "id": "e2",
+       "kind": "switch",
+       "label": "EDGE-2",
+       "x": 3.5,
+       "y": 5,
+       "sub": "VTEP, anycast GW"
+      },
+      {
+       "id": "e3",
+       "kind": "switch",
+       "label": "EDGE-3",
+       "x": 7,
+       "y": 5,
+       "sub": "VTEP, anycast GW"
+      }
+     ],
+     "links": [
+      {
+       "a": "wan",
+       "b": "b1"
+      },
+      {
+       "a": "wan",
+       "b": "b2"
+      },
+      {
+       "a": "b1",
+       "b": "s1"
+      },
+      {
+       "a": "b1",
+       "b": "s2"
+      },
+      {
+       "a": "b2",
+       "b": "s1"
+      },
+      {
+       "a": "b2",
+       "b": "s2"
+      },
+      {
+       "a": "s1",
+       "b": "e1"
+      },
+      {
+       "a": "s1",
+       "b": "e2"
+      },
+      {
+       "a": "s1",
+       "b": "e3"
+      },
+      {
+       "a": "s2",
+       "b": "e1"
+      },
+      {
+       "a": "s2",
+       "b": "e2"
+      },
+      {
+       "a": "s2",
+       "b": "e3"
+      },
+      {
+       "a": "e1",
+       "b": "e2",
+       "label": "VXLAN, VNI 10110",
+       "style": "tunnel"
+      }
+     ],
+     "zones": [
+      {
+       "label": "Routed underlay: IS-IS or OSPF, jumbo MTU",
+       "x": 0,
+       "y": 1,
+       "w": 8,
+       "h": 5,
+       "tone": "accent"
+      }
+     ],
+     "caption": "Edge switches are VXLAN tunnel endpoints with the same anycast gateway, so a subnet can appear on any floor without spanning tree. The spines carry the underlay and act as route reflectors for the EVPN overlay; borders join the fabric to the WAN and firewalls."
+    },
+    {
+     "type": "packet",
+     "title": "The VXLAN header",
+     "width": 32,
+     "fields": [
+      {
+       "label": "Flags (I bit set)",
+       "bits": 8
+      },
+      {
+       "label": "Reserved",
+       "bits": 24
+      },
+      {
+       "label": "VXLAN network identifier (VNI)",
+       "bits": 24
+      },
+      {
+       "label": "Reserved",
+       "bits": 8
+      }
+     ],
+     "caption": "VXLAN adds 8 bytes of its own; with the outer Ethernet (14), IPv4 (20) and UDP (8) headers the total overhead is 50 bytes, or 70 with an IPv6 underlay. The 24-bit VNI allows about 16 million segments, against 4,094 usable VLAN IDs."
     },
     {
      "type": "table",
@@ -1875,11 +2578,12 @@ TRACK.modules.push({
    "id": "m2-l3",
    "title": "Data Centre Spine-Leaf Design",
    "subtitle": "Clos fabrics, east-west traffic and the arithmetic of scale",
-   "minutes": 35,
+   "minutes": 38,
    "objectives": [
     "Explain why spine-leaf replaced tree-based data centre designs",
     "Size a two-tier fabric: leaves, spines, ports and oversubscription",
-    "Identify the scaling limit of a fabric and when a third stage is needed"
+    "Identify the scaling limit of a fabric and when a third stage is needed",
+    "Recognise the distinct requirements of back-end fabrics for GPU and AI clusters"
    ],
    "blocks": [
     {
@@ -1949,6 +2653,159 @@ TRACK.modules.push({
        ]
       }
      ]
+    },
+    {
+     "type": "topology",
+     "title": "A two-tier spine-leaf fabric",
+     "nodes": [
+      {
+       "id": "s1",
+       "kind": "l3switch",
+       "label": "SPINE-1",
+       "x": 1,
+       "y": 0
+      },
+      {
+       "id": "s2",
+       "kind": "l3switch",
+       "label": "SPINE-2",
+       "x": 3.5,
+       "y": 0
+      },
+      {
+       "id": "s3",
+       "kind": "l3switch",
+       "label": "SPINE-3",
+       "x": 6,
+       "y": 0
+      },
+      {
+       "id": "l1",
+       "kind": "switch",
+       "label": "LEAF-1",
+       "x": 0,
+       "y": 2.5
+      },
+      {
+       "id": "l2",
+       "kind": "switch",
+       "label": "LEAF-2",
+       "x": 2.5,
+       "y": 2.5
+      },
+      {
+       "id": "l3",
+       "kind": "switch",
+       "label": "LEAF-3",
+       "x": 4.5,
+       "y": 2.5
+      },
+      {
+       "id": "bl",
+       "kind": "switch",
+       "label": "BORDER LEAF",
+       "x": 7,
+       "y": 2.5,
+       "sub": "WAN, internet, DCI"
+      },
+      {
+       "id": "h1",
+       "kind": "server",
+       "label": "Rack 1 servers",
+       "x": 0,
+       "y": 4.5
+      },
+      {
+       "id": "h2",
+       "kind": "server",
+       "label": "Rack 2 servers",
+       "x": 2.5,
+       "y": 4.5
+      },
+      {
+       "id": "h3",
+       "kind": "server",
+       "label": "Rack 3 servers",
+       "x": 4.5,
+       "y": 4.5
+      },
+      {
+       "id": "fw",
+       "kind": "firewall",
+       "label": "Edge services",
+       "x": 7,
+       "y": 4.5,
+       "sub": "Firewalls, load balancers"
+      }
+     ],
+     "links": [
+      {
+       "a": "s1",
+       "b": "l1"
+      },
+      {
+       "a": "s1",
+       "b": "l2"
+      },
+      {
+       "a": "s1",
+       "b": "l3"
+      },
+      {
+       "a": "s1",
+       "b": "bl"
+      },
+      {
+       "a": "s2",
+       "b": "l1"
+      },
+      {
+       "a": "s2",
+       "b": "l2"
+      },
+      {
+       "a": "s2",
+       "b": "l3"
+      },
+      {
+       "a": "s2",
+       "b": "bl"
+      },
+      {
+       "a": "s3",
+       "b": "l1"
+      },
+      {
+       "a": "s3",
+       "b": "l2"
+      },
+      {
+       "a": "s3",
+       "b": "l3"
+      },
+      {
+       "a": "s3",
+       "b": "bl"
+      },
+      {
+       "a": "l1",
+       "b": "h1",
+       "label": "2×25G"
+      },
+      {
+       "a": "l2",
+       "b": "h2"
+      },
+      {
+       "a": "l3",
+       "b": "h3"
+      },
+      {
+       "a": "bl",
+       "b": "fw"
+      }
+     ],
+     "caption": "Every leaf connects to every spine and leaves never connect to each other, so any two servers on different leaves are exactly two hops apart. Losing one of three spines removes a third of fabric bandwidth."
     },
     {
      "type": "formula",
@@ -2023,6 +2880,157 @@ TRACK.modules.push({
      "kind": "insight",
      "text": "A two-tier fabric stops growing when the spine runs out of ports. The answer is a three-stage (five-hop) design: multiple spine-leaf pods connected by a super-spine layer. It adds a hop and another oversubscription point between pods, so place workloads that talk heavily to each other in the same pod.",
      "title": "When two tiers are not enough"
+    },
+    {
+     "type": "text",
+     "text": "**Fabrics for AI and machine-learning clusters** are now a distinct design problem. Training jobs synchronise GPUs with huge, bursty, all-to-all transfers, and the slowest flow sets the pace of the whole job, so the **back-end GPU fabric** is usually built non-blocking (1:1), at 400 or 800 Gbps per port, and kept separate from the front-end, storage and management networks. Many designs are **rail-optimised**: GPU number n in every server connects to leaf (rail) n, so most traffic between servers stays one hop away. Ethernet back-ends carry RDMA (RoCEv2), which needs either a lossless configuration (priority flow control with ECN-based congestion control) or newer transports that tolerate loss; a few large, low-entropy flows also defeat simple hash-based ECMP, which is why adaptive routing and packet spraying appear in these fabrics. Industry work such as the Ultra Ethernet specification (version 1.0 published in 2025) targets exactly these needs — check product maturity before relying on it."
+    },
+    {
+     "type": "topology",
+     "title": "Rail-optimised back-end fabric for a GPU cluster",
+     "nodes": [
+      {
+       "id": "sp1",
+       "kind": "l3switch",
+       "label": "SPINE-1",
+       "x": 2,
+       "y": 0
+      },
+      {
+       "id": "sp2",
+       "kind": "l3switch",
+       "label": "SPINE-2",
+       "x": 5,
+       "y": 0
+      },
+      {
+       "id": "r1",
+       "kind": "switch",
+       "label": "RAIL-1 LEAF",
+       "x": 0,
+       "y": 2
+      },
+      {
+       "id": "r2",
+       "kind": "switch",
+       "label": "RAIL-2 LEAF",
+       "x": 2.33,
+       "y": 2
+      },
+      {
+       "id": "r3",
+       "kind": "switch",
+       "label": "RAIL-3 LEAF",
+       "x": 4.67,
+       "y": 2
+      },
+      {
+       "id": "r4",
+       "kind": "switch",
+       "label": "RAIL-4 LEAF",
+       "x": 7,
+       "y": 2
+      },
+      {
+       "id": "g1",
+       "kind": "server",
+       "label": "GPU server 1",
+       "x": 1.5,
+       "y": 4,
+       "sub": "4 GPUs, 4 × 400G NICs"
+      },
+      {
+       "id": "g2",
+       "kind": "server",
+       "label": "GPU server 2",
+       "x": 5.5,
+       "y": 4,
+       "sub": "4 GPUs, 4 × 400G NICs"
+      }
+     ],
+     "links": [
+      {
+       "a": "sp1",
+       "b": "r1"
+      },
+      {
+       "a": "sp1",
+       "b": "r2"
+      },
+      {
+       "a": "sp1",
+       "b": "r3"
+      },
+      {
+       "a": "sp1",
+       "b": "r4"
+      },
+      {
+       "a": "sp2",
+       "b": "r1"
+      },
+      {
+       "a": "sp2",
+       "b": "r2"
+      },
+      {
+       "a": "sp2",
+       "b": "r3"
+      },
+      {
+       "a": "sp2",
+       "b": "r4"
+      },
+      {
+       "a": "g1",
+       "b": "r1"
+      },
+      {
+       "a": "g1",
+       "b": "r2"
+      },
+      {
+       "a": "g1",
+       "b": "r3"
+      },
+      {
+       "a": "g1",
+       "b": "r4"
+      },
+      {
+       "a": "g2",
+       "b": "r1"
+      },
+      {
+       "a": "g2",
+       "b": "r2"
+      },
+      {
+       "a": "g2",
+       "b": "r3"
+      },
+      {
+       "a": "g2",
+       "b": "r4"
+      }
+     ],
+     "zones": [
+      {
+       "label": "Back-end fabric: 1:1, lossless or loss-tolerant RDMA",
+       "x": 0,
+       "y": 0,
+       "w": 8,
+       "h": 3,
+       "tone": "accent"
+      }
+     ],
+     "caption": "Simplified to four rails and two servers. Each server's GPU NICs land on different rail leaves, so a collective operation between the same-numbered GPUs crosses only one leaf; traffic between rails climbs to the spines."
+    },
+    {
+     "type": "callout",
+     "kind": "warning",
+     "title": "Power and cooling decide AI fabric scale",
+     "text": "A rack of current GPU servers can draw tens of kilowatts, often needing liquid cooling, and high-speed optics add measurable power per port. In practice the hall's power and cooling, not switch radix, often caps cluster size — capture it as a constraint on the Requirements sheet before sizing the fabric."
     },
     {
      "type": "case",
@@ -2140,6 +3148,16 @@ TRACK.modules.push({
      "prompt": "For a data centre you know, estimate the leaf oversubscription and the bandwidth lost when one spine fails. Is that loss acceptable for its most demanding application?"
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Spine-leaf gives equal two-hop paths and scales out: spines add bandwidth, leaves add ports",
+      "Spine port count caps leaves; leaf uplinks cap spines; a super-spine joins pods when ports run out",
+      "State oversubscription normally and after a spine failure, and match it to the workload",
+      "GPU back-end fabrics are separate, non-blocking and often rail-optimised, with power and cooling as the real limit"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -2196,6 +3214,17 @@ TRACK.modules.push({
        ],
        "answer": 2,
        "explain": "A super-spine connects multiple pods once a single spine layer runs out of ports. It adds a hop and an oversubscription point between pods."
+      },
+      {
+       "q": "A team is designing the back-end network for a GPU training cluster. Which design choice BEST fits the workload?",
+       "options": [
+        "Share the general-purpose fabric at 3:1 oversubscription to reuse existing spines",
+        "Route GPU traffic through the border leaves so firewalls can inspect every flow",
+        "A separate non-blocking fabric, often rail-optimised, tuned for RDMA traffic",
+        "Stretch one VLAN across all GPU racks so the servers share a broadcast domain"
+       ],
+       "answer": 2,
+       "explain": "Training traffic is bursty, all-to-all and paced by the slowest flow, so a dedicated non-blocking back-end fabric suits it. Oversubscription, firewall hairpins and large layer 2 domains all slow or endanger the job."
       }
      ]
     }
@@ -2205,7 +3234,7 @@ TRACK.modules.push({
    "id": "m2-l4",
    "title": "Data Centre Interconnect and Choosing a Design",
    "subtitle": "Connect sites without merging their failure domains",
-   "minutes": 30,
+   "minutes": 33,
    "objectives": [
     "Compare data centre interconnect options and their failure-domain impact",
     "Calculate the latency cost of distance and judge synchronous replication limits",
@@ -2259,6 +3288,111 @@ TRACK.modules.push({
      "title": "Why stretched layer 2 is risky"
     },
     {
+     "type": "topology",
+     "title": "Routed DCI with selective layer 2 extension",
+     "nodes": [
+      {
+       "id": "wan",
+       "kind": "cloud",
+       "label": "DWDM / dark fibre",
+       "x": 3.5,
+       "y": 0,
+       "sub": "35 km, diverse routes"
+      },
+      {
+       "id": "fa",
+       "kind": "switch",
+       "label": "DC-A fabric",
+       "x": 0,
+       "y": 2
+      },
+      {
+       "id": "ga",
+       "kind": "router",
+       "label": "Border GW A",
+       "x": 2,
+       "y": 2
+      },
+      {
+       "id": "gb",
+       "kind": "router",
+       "label": "Border GW B",
+       "x": 5,
+       "y": 2
+      },
+      {
+       "id": "fb",
+       "kind": "switch",
+       "label": "DC-B fabric",
+       "x": 7,
+       "y": 2
+      },
+      {
+       "id": "wit",
+       "kind": "server",
+       "label": "Quorum witness",
+       "x": 3.5,
+       "y": 4,
+       "sub": "Third site"
+      }
+     ],
+     "links": [
+      {
+       "a": "fa",
+       "b": "ga"
+      },
+      {
+       "a": "gb",
+       "b": "fb"
+      },
+      {
+       "a": "ga",
+       "b": "wan",
+       "label": "routed"
+      },
+      {
+       "a": "wan",
+       "b": "gb",
+       "label": "routed"
+      },
+      {
+       "a": "ga",
+       "b": "gb",
+       "label": "12 VNIs only",
+       "style": "tunnel"
+      },
+      {
+       "a": "wit",
+       "b": "ga",
+       "style": "dashed"
+      },
+      {
+       "a": "wit",
+       "b": "gb",
+       "style": "dashed"
+      }
+     ],
+     "zones": [
+      {
+       "label": "DC-A failure domain",
+       "x": 0,
+       "y": 1,
+       "w": 3,
+       "h": 2,
+       "tone": "good"
+      },
+      {
+       "label": "DC-B failure domain",
+       "x": 5,
+       "y": 1,
+       "w": 3,
+       "h": 2,
+       "tone": "good"
+      }
+     ],
+     "caption": "The sites stay separate failure domains joined by routing; only the validated segments ride an EVPN multi-site tunnel between border gateways, each site keeps its own anycast gateway, and a witness at a third location breaks ties for clusters."
+    },
+    {
      "type": "formula",
      "title": "Distance and latency",
      "items": [
@@ -2278,6 +3412,49 @@ TRACK.modules.push({
        "meaning": "Every synchronous write waits for the remote acknowledgement, so the application's write-latency tolerance sets the maximum distance."
       }
      ]
+    },
+    {
+     "type": "chart",
+     "title": "Round-trip propagation delay against fibre route length",
+     "kind": "line",
+     "labels": [
+      "0 km",
+      "50",
+      "100",
+      "150",
+      "200",
+      "250",
+      "300"
+     ],
+     "series": [
+      {
+       "name": "Propagation RTT",
+       "values": [
+        0,
+        0.5,
+        1,
+        1.5,
+        2,
+        2.5,
+        3
+       ]
+      },
+      {
+       "name": "Example 1 ms budget",
+       "values": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+       ]
+      }
+     ],
+     "unit": " ms",
+     "yLabel": "Round trip",
+     "caption": "Computed at about 5 µs per km one way, before any equipment delay. With an illustrative 1 ms synchronous-write budget, propagation alone uses the whole budget at 100 km of route, so the practical limit is lower once equipment delay is added."
     },
     {
      "type": "callout",
@@ -2431,6 +3608,16 @@ TRACK.modules.push({
      "prompt": "If your organisation's two data centres lost their interconnect right now, what would each site believe about the other? Is there any resource both would try to own?"
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Connect data centres but keep them separate failure domains",
+      "Stretch layer 2 only for validated needs, over an overlay with flooding control and local gateways",
+      "Fibre adds about 1 ms of round trip per 100 km of route; the application's write budget sets the distance for synchronous replication",
+      "Active-active needs ingress steering and symmetric state handling; active-standby needs regular failover tests"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -2500,7 +3687,7 @@ TRACK.modules.push({
    "id": "m3-l1",
    "title": "WAN Transport Options and Budgets",
    "subtitle": "Match each site to transports by SLA, latency, cost and diversity",
-   "minutes": 30,
+   "minutes": 33,
    "objectives": [
     "Compare private, public and wireless WAN transports on the attributes that matter for design",
     "Build delay and bandwidth budgets for latency-sensitive applications",
@@ -2558,6 +3745,13 @@ TRACK.modules.push({
        "Backup, temporary and mobile sites"
       ],
       [
+       "5G fixed wireless access",
+       "Best effort; some operators offer business SLAs",
+       "Variable; shared cell capacity at peak",
+       "Fast to deploy; no trenching",
+       "Branch primary where fixed lines are poor, or a diverse secondary"
+      ],
+      [
        "LEO satellite",
        "Best effort",
        "Typically tens of milliseconds",
@@ -2606,6 +3800,92 @@ TRACK.modules.push({
      "title": "Diversity you cannot see"
     },
     {
+     "type": "topology",
+     "title": "A branch with three physically independent transports",
+     "nodes": [
+      {
+       "id": "hub",
+       "kind": "router",
+       "label": "Hub / DC edge",
+       "x": 3.5,
+       "y": 0,
+       "sub": "Dual DIA, two carriers"
+      },
+      {
+       "id": "isp",
+       "kind": "cloud",
+       "label": "Fibre ISP",
+       "x": 0.5,
+       "y": 2
+      },
+      {
+       "id": "cell",
+       "kind": "tower",
+       "label": "5G operator",
+       "x": 3.5,
+       "y": 2
+      },
+      {
+       "id": "leo",
+       "kind": "cloud",
+       "label": "LEO service",
+       "x": 6.5,
+       "y": 2
+      },
+      {
+       "id": "br",
+       "kind": "router",
+       "label": "Branch edge",
+       "x": 3.5,
+       "y": 4,
+       "sub": "Overlay, app-aware steering"
+      },
+      {
+       "id": "lan",
+       "kind": "laptop",
+       "label": "Branch users",
+       "x": 3.5,
+       "y": 5.5
+      }
+     ],
+     "links": [
+      {
+       "a": "br",
+       "b": "isp",
+       "label": "fibre, entry A"
+      },
+      {
+       "a": "br",
+       "b": "cell",
+       "label": "5G",
+       "style": "wireless"
+      },
+      {
+       "a": "br",
+       "b": "leo",
+       "label": "dish",
+       "style": "wireless"
+      },
+      {
+       "a": "isp",
+       "b": "hub"
+      },
+      {
+       "a": "cell",
+       "b": "hub"
+      },
+      {
+       "a": "leo",
+       "b": "hub"
+      },
+      {
+       "a": "br",
+       "b": "lan"
+      }
+     ],
+     "caption": "Each path leaves the building by a different medium and reaches the hub through a different provider network, so no single duct, exchange or operator failure isolates the site. The overlay treats all three as interchangeable transport."
+    },
+    {
      "type": "formula",
      "title": "WAN budget arithmetic",
      "items": [
@@ -2641,6 +3921,33 @@ TRACK.modules.push({
      "kind": "example",
      "text": "A research group complains that copying data to a partner 9,000 km away crawls at under 10 Mbps on a new 1 Gbps circuit. The route RTT is about 110 ms. With a 64 KB window, one TCP flow is capped near 4.8 Mbps. The fix is not more bandwidth but window scaling, parallel streams or a transfer tool built for high-latency paths — a reminder that latency, not just capacity, limits throughput.",
      "title": "Why the link upgrade did not help"
+    },
+    {
+     "type": "chart",
+     "title": "Single-flow TCP ceiling with a 64 KB window",
+     "kind": "bar",
+     "labels": [
+      "10 ms",
+      "20 ms",
+      "50 ms",
+      "100 ms",
+      "200 ms"
+     ],
+     "series": [
+      {
+       "name": "Max throughput per flow",
+       "values": [
+        52.4,
+        26.2,
+        10.5,
+        5.2,
+        2.6
+       ]
+      }
+     ],
+     "unit": " Mbps",
+     "yLabel": "Mbps",
+     "caption": "Computed from throughput ≤ window ÷ RTT with a 64 KB (524,288-bit) window. Above about 50 ms of round trip, one flow cannot exceed about 10 Mbps whatever the circuit size — window scaling or parallel streams are the fix."
     },
     {
      "type": "scenario",
@@ -2711,6 +4018,16 @@ TRACK.modules.push({
      "prompt": "For one of your critical applications, write its delay budget component by component. Which component dominates, and could a transport choice change it?"
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Match each site class to transports whose weaknesses do not overlap",
+      "Prove critical applications with a delay and bandwidth budget, component by component",
+      "Latency limits single-flow throughput: check the bandwidth-delay product before buying capacity",
+      "Physical diversity must be verified on route maps; mixing fibre, 5G and LEO makes shared failures rare"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -2776,7 +4093,7 @@ TRACK.modules.push({
    "id": "m3-l2",
    "title": "SD-WAN and WAN Topology Design",
    "subtitle": "Overlay decisions: topology, site tiers, steering and failure behaviour",
-   "minutes": 35,
+   "minutes": 38,
    "objectives": [
     "Choose a WAN topology — hub-and-spoke, regional hubs, partial or full mesh — from traffic patterns",
     "Define site tiers that standardise transports and resilience",
@@ -2924,6 +4241,135 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "topology",
+     "title": "SD-WAN with two hubs, on-demand tunnels and cloud security",
+     "nodes": [
+      {
+       "id": "ctl",
+       "kind": "controller",
+       "label": "Controllers",
+       "x": 3.5,
+       "y": 0,
+       "sub": "Two independent sites"
+      },
+      {
+       "id": "h1",
+       "kind": "router",
+       "label": "Hub A",
+       "x": 1,
+       "y": 2,
+       "sub": "Data centre 1"
+      },
+      {
+       "id": "sse",
+       "kind": "cloud",
+       "label": "Cloud security",
+       "x": 3.5,
+       "y": 2,
+       "sub": "SWG, ZTNA, logging"
+      },
+      {
+       "id": "h2",
+       "kind": "router",
+       "label": "Hub B",
+       "x": 6,
+       "y": 2,
+       "sub": "Data centre 2"
+      },
+      {
+       "id": "b1",
+       "kind": "router",
+       "label": "Branch 1",
+       "x": 0,
+       "y": 4.5
+      },
+      {
+       "id": "b2",
+       "kind": "router",
+       "label": "Branch 2",
+       "x": 2.5,
+       "y": 4.5
+      },
+      {
+       "id": "b3",
+       "kind": "router",
+       "label": "Branch 3",
+       "x": 4.5,
+       "y": 4.5
+      },
+      {
+       "id": "b4",
+       "kind": "router",
+       "label": "Branch 4",
+       "x": 7,
+       "y": 4.5
+      }
+     ],
+     "links": [
+      {
+       "a": "ctl",
+       "b": "h1",
+       "label": "control",
+       "style": "dashed"
+      },
+      {
+       "a": "ctl",
+       "b": "h2",
+       "label": "control",
+       "style": "dashed"
+      },
+      {
+       "a": "b1",
+       "b": "h1",
+       "style": "tunnel"
+      },
+      {
+       "a": "b2",
+       "b": "h1",
+       "style": "tunnel"
+      },
+      {
+       "a": "b3",
+       "b": "h2",
+       "style": "tunnel"
+      },
+      {
+       "a": "b4",
+       "b": "h2",
+       "style": "tunnel"
+      },
+      {
+       "a": "b2",
+       "b": "h2",
+       "style": "tunnel"
+      },
+      {
+       "a": "b3",
+       "b": "h1",
+       "style": "tunnel"
+      },
+      {
+       "a": "b2",
+       "b": "b3",
+       "label": "on-demand",
+       "style": "tunnel"
+      },
+      {
+       "a": "b1",
+       "b": "sse",
+       "label": "DIA to SaaS",
+       "style": "dashed"
+      },
+      {
+       "a": "b4",
+       "b": "sse",
+       "label": "DIA to SaaS",
+       "style": "dashed"
+      }
+     ],
+     "caption": "Every branch builds encrypted tunnels to both hubs; store-to-store media gets an on-demand tunnel only while a call is active. SaaS and internet traffic breaks out locally to a cloud security service, while controllers sit in two independent locations."
+    },
+    {
      "type": "callout",
      "kind": "pro",
      "text": "Four or five site tiers with fixed transport, device and policy templates make the WAN operable at scale. When a site does not fit, record a design exception with its owner and reason. A WAN with dozens of one-off sites loses most of the operational benefit of the overlay.",
@@ -2952,6 +4398,52 @@ TRACK.modules.push({
        ]
       }
      ]
+    },
+    {
+     "type": "callout",
+     "kind": "definition",
+     "title": "SASE and SSE",
+     "text": "**Secure access service edge (SASE)** combines SD-WAN with cloud-delivered security. The security half, often called **security service edge (SSE)**, typically bundles a secure web gateway, cloud access security, zero-trust network access and firewall as a service, delivered from the provider's points of presence. The design questions are where those points of presence are, what happens to branches when the service is unreachable, how logs reach your own tools, and whether one supplier for both halves is worth the reduced choice."
+    },
+    {
+     "type": "tree",
+     "title": "Where should branch internet traffic leave?",
+     "root": {
+      "label": "Branch internet and SaaS traffic",
+      "children": [
+       {
+        "label": "A rule requires one central appliance?",
+        "text": "Yes",
+        "children": [
+         {
+          "label": "Backhaul to the hub stack",
+          "text": "Accept SaaS latency; size hub links"
+         }
+        ]
+       },
+       {
+        "label": "SaaS-heavy and latency-sensitive?",
+        "text": "Yes",
+        "children": [
+         {
+          "label": "Local breakout via SSE",
+          "text": "Central policy and logs, no branch firewalls"
+         }
+        ]
+       },
+       {
+        "label": "Small security team, many sites?",
+        "text": "Yes",
+        "children": [
+         {
+          "label": "Prefer cloud-delivered security",
+          "text": "Avoid hundreds of branch firewalls"
+         }
+        ]
+       }
+      ]
+     },
+     "caption": "Work down the tree with the branch tier's requirements. Most estates end up with a mix: local breakout through a cloud security service for SaaS, and backhaul for the few flows a rule or a central system really needs."
     },
     {
      "type": "callout",
@@ -3066,6 +4558,17 @@ TRACK.modules.push({
      "prompt": "How many distinct site designs does your WAN really have today? Which of them could be merged into a tier, and which deserve to stay as documented exceptions?"
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Choose topology from traffic patterns: hub-and-spoke for branch-to-DC, on-demand tunnels for occasional branch-to-branch",
+      "A small set of site tiers with templates makes a large WAN operable; exceptions are documented",
+      "Full meshes grow with the square of the sites — check tunnel limits per edge",
+      "Local breakout through a cloud security service shortens SaaS paths while keeping central policy and logs",
+      "Spread controllers so one regional outage cannot strand every site, and know the headless behaviour"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -3131,7 +4634,7 @@ TRACK.modules.push({
    "id": "m3-l3",
    "title": "Internet Edge and DMZ Design",
    "subtitle": "Resilient, secure entry points for users, services and partners",
-   "minutes": 30,
+   "minutes": 33,
    "objectives": [
     "Design a layered internet edge with defined roles for routing, DDoS protection and inspection",
     "Choose a DMZ pattern that fits the services and risk profile",
@@ -3158,7 +4661,7 @@ TRACK.modules.push({
        "label": "Edge routing",
        "parts": [
         "BGP with ISPs",
-        "Inbound and outbound route filtering",
+        "Inbound and outbound route filtering with RPKI origin validation",
         "Anti-spoofing filters on ingress"
        ]
       },
@@ -3187,6 +4690,139 @@ TRACK.modules.push({
        ]
       }
      ]
+    },
+    {
+     "type": "topology",
+     "title": "A layered internet edge with a dual-tier DMZ",
+     "nodes": [
+      {
+       "id": "net",
+       "kind": "internet",
+       "label": "Internet",
+       "x": 3.5,
+       "y": 0,
+       "sub": "Scrubbing on demand"
+      },
+      {
+       "id": "ia",
+       "kind": "cloud",
+       "label": "ISP-A",
+       "x": 1.5,
+       "y": 1
+      },
+      {
+       "id": "ib",
+       "kind": "cloud",
+       "label": "ISP-B",
+       "x": 5.5,
+       "y": 1
+      },
+      {
+       "id": "ea",
+       "kind": "router",
+       "label": "EDGE-1",
+       "x": 1.5,
+       "y": 2.5
+      },
+      {
+       "id": "eb",
+       "kind": "router",
+       "label": "EDGE-2",
+       "x": 5.5,
+       "y": 2.5
+      },
+      {
+       "id": "fo",
+       "kind": "firewall",
+       "label": "Outer firewall",
+       "x": 3.5,
+       "y": 3.5,
+       "sub": "HA pair"
+      },
+      {
+       "id": "px",
+       "kind": "lb",
+       "label": "Reverse proxy",
+       "x": 6.5,
+       "y": 4.5,
+       "sub": "WAF, TLS termination"
+      },
+      {
+       "id": "fi",
+       "kind": "firewall",
+       "label": "Inner firewall",
+       "x": 3.5,
+       "y": 5.5,
+       "sub": "Separately managed"
+      },
+      {
+       "id": "app",
+       "kind": "server",
+       "label": "App tier",
+       "x": 0.5,
+       "y": 5.5,
+       "sub": "Never reachable inbound"
+      }
+     ],
+     "links": [
+      {
+       "a": "net",
+       "b": "ia"
+      },
+      {
+       "a": "net",
+       "b": "ib"
+      },
+      {
+       "a": "ia",
+       "b": "ea"
+      },
+      {
+       "a": "ib",
+       "b": "eb"
+      },
+      {
+       "a": "ea",
+       "b": "fo"
+      },
+      {
+       "a": "eb",
+       "b": "fo"
+      },
+      {
+       "a": "fo",
+       "b": "px",
+       "label": "HTTPS only"
+      },
+      {
+       "a": "px",
+       "b": "fi",
+       "label": "proxy to app"
+      },
+      {
+       "a": "fi",
+       "b": "app"
+      }
+     ],
+     "zones": [
+      {
+       "label": "DMZ",
+       "x": 6.5,
+       "y": 4.5,
+       "w": 1,
+       "h": 1,
+       "tone": "warn"
+      },
+      {
+       "label": "Internal",
+       "x": 0.5,
+       "y": 5.5,
+       "w": 1,
+       "h": 1,
+       "tone": "good"
+      }
+     ],
+     "caption": "Traffic from the internet meets upstream protection, diverse ISPs and edge routers before the outer firewall. Published services live in the DMZ between the outer and inner firewalls, and only the reverse proxy may open sessions to the internal application tier."
     },
     {
      "type": "compare",
@@ -3226,6 +4862,61 @@ TRACK.modules.push({
      "kind": "warning",
      "text": "A volumetric attack that fills your 10 Gbps access link has succeeded before traffic reaches any on-site device. Mitigation must happen upstream — in the ISP's network or a cloud scrubbing service — with traffic diverted by BGP or DNS. On-site devices still matter for application-layer attacks and for attacks small enough to fit through the link.",
      "title": "On-premises appliances cannot stop a full pipe"
+    },
+    {
+     "type": "sequence",
+     "title": "On-demand cloud scrubbing by BGP diversion",
+     "actors": [
+      "Enterprise edge",
+      "Scrubbing provider",
+      "Internet"
+     ],
+     "steps": [
+      {
+       "from": 0,
+       "to": 0,
+       "label": "Detect attack on 203.0.113.0/24",
+       "note": "link near saturation"
+      },
+      {
+       "from": 0,
+       "to": 1,
+       "label": "Activate mitigation"
+      },
+      {
+       "from": 1,
+       "to": 2,
+       "label": "Announce more-specific /24",
+       "note": "a ROA must authorise its AS"
+      },
+      {
+       "from": 2,
+       "to": 1,
+       "label": "Traffic now arrives here",
+       "reply": true
+      },
+      {
+       "from": 1,
+       "to": 1,
+       "label": "Drop attack traffic"
+      },
+      {
+       "from": 1,
+       "to": 0,
+       "label": "Clean traffic via GRE tunnel"
+      },
+      {
+       "from": 0,
+       "to": 1,
+       "label": "Attack over: request withdrawal"
+      },
+      {
+       "from": 1,
+       "to": 2,
+       "label": "Withdraw announcement"
+      }
+     ],
+     "caption": "Diversion works only if the more-specific announcement, the return tunnel and the runbook were staged and tested beforehand; the gap between steps 1 and 4 is the diversion time the business must accept."
     },
     {
      "type": "table",
@@ -3374,6 +5065,16 @@ TRACK.modules.push({
      "prompt": "If your main internet link were saturated by an attack right now, what is the first action, who takes it, and how long would it take? Is that written down anywhere?"
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Separate the edge jobs: users out, services in, and protection for both",
+      "Volumetric DDoS must be absorbed upstream; pre-stage scrubbing, routing and runbooks and test diversion",
+      "Choose the DMZ pattern by risk: dual-tier or brokered where defence in depth is required",
+      "Provider-independent space advertised to two ISPs keeps inbound services reachable through either"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -3428,7 +5129,7 @@ TRACK.modules.push({
    "id": "m3-l4",
    "title": "BGP Multihoming and Provider Connectivity",
    "subtitle": "Control inbound and outbound paths, and design around provider routing models",
-   "minutes": 35,
+   "minutes": 38,
    "objectives": [
     "Select a multihoming model from availability and traffic requirements",
     "Choose the right inbound and outbound traffic-engineering tools and predict their effect",
@@ -3502,10 +5203,149 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "tree",
+     "title": "Choosing an inbound traffic-engineering tool",
+     "root": {
+      "label": "Steer inbound traffic",
+      "children": [
+       {
+        "label": "Several links to one provider?",
+        "text": "Yes",
+        "children": [
+         {
+          "label": "MED",
+          "text": "Compared only within that neighbour AS"
+         }
+        ]
+       },
+       {
+        "label": "Provider publishes communities?",
+        "text": "Yes",
+        "children": [
+         {
+          "label": "Communities",
+          "text": "Change local preference inside its network"
+         }
+        ]
+       },
+       {
+        "label": "Only a tie-breaker needed?",
+        "text": "Yes",
+        "children": [
+         {
+          "label": "AS-path prepending",
+          "text": "Ignored where local preference decides"
+         }
+        ]
+       },
+       {
+        "label": "Hard control required?",
+        "text": "Yes",
+        "children": [
+         {
+          "label": "More-specific prefixes",
+          "text": "Within accepted lengths, with ROAs"
+         }
+        ]
+       }
+      ]
+     },
+     "caption": "Start with the gentlest tool that can work. More-specific prefixes always win by longest match, but they add global routes and are capped at /24 for IPv4 and /48 for IPv6."
+    },
+    {
      "type": "callout",
      "kind": "insight",
      "text": "To choose your exit, set local preference on routes received from each provider. Taking a default route from both providers plus partial routes (the providers' own customers) is often enough: it gives sensible exits for well-connected destinations without the memory and churn of full internet tables on every edge router.",
      "title": "Outbound is local preference"
+    },
+    {
+     "type": "topology",
+     "title": "Dual-ISP multihoming for 203.0.113.0/24",
+     "nodes": [
+      {
+       "id": "net",
+       "kind": "internet",
+       "label": "Internet",
+       "x": 3.5,
+       "y": 0
+      },
+      {
+       "id": "a",
+       "kind": "cloud",
+       "label": "ISP-A",
+       "x": 1,
+       "y": 1.5,
+       "sub": "AS 64501, 192.0.2.1"
+      },
+      {
+       "id": "b",
+       "kind": "cloud",
+       "label": "ISP-B",
+       "x": 6,
+       "y": 1.5,
+       "sub": "AS 64502, 198.51.100.1"
+      },
+      {
+       "id": "e1",
+       "kind": "router",
+       "label": "EDGE1",
+       "x": 1,
+       "y": 3.5,
+       "sub": "AS 64500"
+      },
+      {
+       "id": "e2",
+       "kind": "router",
+       "label": "EDGE2",
+       "x": 6,
+       "y": 3.5,
+       "sub": "AS 64500"
+      },
+      {
+       "id": "lan",
+       "kind": "l3switch",
+       "label": "Enterprise core",
+       "x": 3.5,
+       "y": 5,
+       "sub": "203.0.113.0/24"
+      }
+     ],
+     "links": [
+      {
+       "a": "net",
+       "b": "a"
+      },
+      {
+       "a": "net",
+       "b": "b"
+      },
+      {
+       "a": "e1",
+       "b": "a",
+       "label": "LP 200 in",
+       "aEnd": "192.0.2.2"
+      },
+      {
+       "a": "e2",
+       "b": "b",
+       "label": "prepend ×2 out",
+       "aEnd": "198.51.100.2"
+      },
+      {
+       "a": "e1",
+       "b": "e2",
+       "label": "iBGP"
+      },
+      {
+       "a": "e1",
+       "b": "lan"
+      },
+      {
+       "a": "e2",
+       "b": "lan"
+      }
+     ],
+     "caption": "Outbound, local preference 200 on ISP-A routes chooses the exit. Inbound, prepending towards ISP-B only nudges remote networks; ISP-B's customer communities would be stronger. Both sessions advertise only 203.0.113.0/24 so the enterprise never becomes transit."
     },
     {
      "type": "cli",
@@ -3613,7 +5453,7 @@ TRACK.modules.push({
       },
       {
        "title": "Filter both directions",
-       "text": "Outbound: only your prefixes. Inbound: drop bogons, your own space, and overly specific routes; set maximum-prefix limits."
+       "text": "Outbound: only your prefixes. Inbound: drop bogons, your own space, overly specific routes and RPKI-invalid origins; set maximum-prefix limits. Where peers support it, configure BGP roles so route leaks are detected automatically; newer path-validation work (such as AS-path authorisation) is still being standardised and deployed — check its status before relying on it."
       },
       {
        "title": "Test failure and recovery",
@@ -3665,6 +5505,17 @@ TRACK.modules.push({
     {
      "type": "reflection",
      "prompt": "Which direction of traffic does your organisation actually need to control at the internet edge — inbound, outbound or both? Which tool are you relying on, and how much control does it really give?"
+    },
+    {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Outbound is yours to choose with local preference; inbound can only be influenced",
+      "Prefer communities and prepending; use more-specifics only when necessary and within accepted lengths",
+      "An explicit outbound filter permitting only your prefixes prevents accidental transit",
+      "Publish ROAs and validate origins; drop bogons, your own space and invalid routes inbound",
+      "With two MPLS providers, tag and filter so sites never become transit between the VPNs"
+     ]
     },
     {
      "type": "quiz",
@@ -3747,7 +5598,7 @@ TRACK.modules.push({
    "id": "m4-l1",
    "title": "Choosing an Interior Routing Protocol",
    "subtitle": "Select the IGP from requirements, not habit",
-   "minutes": 25,
+   "minutes": 28,
    "objectives": [
     "Compare OSPF, IS-IS, BGP-only and static designs against design criteria",
     "Identify the requirements that genuinely decide between link-state protocols",
@@ -3850,9 +5701,64 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "tree",
+     "title": "An IGP decision tree",
+     "root": {
+      "label": "Routing domain to design",
+      "children": [
+       {
+        "label": "Stub site, one exit?",
+        "children": [
+         {
+          "label": "Static default",
+          "text": "Tracked by probe or BFD"
+         }
+        ]
+       },
+       {
+        "label": "Large automated Clos fabric?",
+        "children": [
+         {
+          "label": "eBGP underlay",
+          "text": "Per-link sessions, IPv6 next hops"
+         }
+        ]
+       },
+       {
+        "label": "Enterprise campus and WAN?",
+        "children": [
+         {
+          "label": "OSPF",
+          "text": "Areas map to blocks and regions"
+         }
+        ]
+       },
+       {
+        "label": "Dual-stack backbone, SR planned?",
+        "children": [
+         {
+          "label": "IS-IS",
+          "text": "One instance, both families"
+         }
+        ]
+       },
+       {
+        "label": "Working IGP, no unmet need?",
+        "children": [
+         {
+          "label": "Keep it",
+          "text": "Add a review trigger"
+         }
+        ]
+       }
+      ]
+     },
+     "caption": "A starting point, not a rule: each branch still has to be checked against skills, vendor support and migration cost. Note that keeping a working protocol is a legitimate outcome of the tree."
+    },
+    {
      "type": "callout",
      "kind": "insight",
-     "text": "In large Clos fabrics, eBGP on every leaf-spine link — with spines sharing one AS and each leaf or leaf pair its own — gives simple, policy-rich routing with failure impact limited to the affected links. It suits fabrics with thousands of links and automated configuration. For a small fabric, a link-state IGP underlay with BGP only in the overlay is equally valid; choose by scale and automation maturity.",
+     "text": "In large Clos fabrics, eBGP on every leaf-spine link — with spines sharing one AS and each leaf or leaf pair its own — gives simple, policy-rich routing with failure impact limited to the affected links. It suits fabrics with thousands of links and automated configuration. For a small fabric, a link-state IGP underlay with BGP only in the overlay is equally valid; choose by scale and automation maturity. Many such fabrics also run BGP over IPv6 link-local addresses and carry IPv4 routes with IPv6 next hops (RFC 8950), so individual fabric links need no IPv4 addressing at all — a small example of the IPv6-first underlays now common in new builds.",
      "title": "BGP as the only protocol in a data-centre fabric"
     },
     {
@@ -4013,7 +5919,7 @@ TRACK.modules.push({
    "id": "m4-l2",
    "title": "OSPF Area and IS-IS Level Design",
    "subtitle": "Use hierarchy to contain flooding, state and failure",
-   "minutes": 35,
+   "minutes": 38,
    "objectives": [
     "Design OSPF areas and choose area types for each part of the network",
     "Design IS-IS level boundaries and route leaking for optimal exits",
@@ -4067,6 +5973,53 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "tree",
+     "title": "Choosing an area type",
+     "root": {
+      "label": "Part of the network",
+      "children": [
+       {
+        "label": "Core joining all areas?",
+        "children": [
+         {
+          "label": "Backbone (area 0)"
+         }
+        ]
+       },
+       {
+        "label": "Single logical exit?",
+        "children": [
+         {
+          "label": "No local externals",
+          "children": [
+           {
+            "label": "Totally stubby"
+           }
+          ]
+         },
+         {
+          "label": "Local externals",
+          "children": [
+           {
+            "label": "NSSA (default optional)"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "label": "Several exits, detail matters?",
+        "children": [
+         {
+          "label": "Standard area"
+         }
+        ]
+       }
+      ]
+     },
+     "caption": "Ask the questions in order. A single logical exit makes a default enough; local external routes are what push a stub-like area to NSSA."
+    },
+    {
      "type": "steps",
      "title": "Designing OSPF areas",
      "items": [
@@ -4091,6 +6044,152 @@ TRACK.modules.push({
        "text": "Put unstable parts of the network, such as WAN branches, in their own areas so their flaps do not trigger full SPF runs elsewhere."
       }
      ]
+    },
+    {
+     "type": "topology",
+     "title": "A multi-area OSPF design with stubby branch areas",
+     "nodes": [
+      {
+       "id": "c1",
+       "kind": "router",
+       "label": "CORE-1",
+       "x": 2,
+       "y": 0
+      },
+      {
+       "id": "c2",
+       "kind": "router",
+       "label": "CORE-2",
+       "x": 5,
+       "y": 0
+      },
+      {
+       "id": "a11",
+       "kind": "router",
+       "label": "ABR-11",
+       "x": 0,
+       "y": 2
+      },
+      {
+       "id": "a12",
+       "kind": "router",
+       "label": "ABR-12",
+       "x": 2,
+       "y": 2
+      },
+      {
+       "id": "a21",
+       "kind": "router",
+       "label": "ABR-21",
+       "x": 5,
+       "y": 2,
+       "sub": "RID 10.0.0.21"
+      },
+      {
+       "id": "a22",
+       "kind": "router",
+       "label": "ABR-22",
+       "x": 7,
+       "y": 2
+      },
+      {
+       "id": "br10",
+       "kind": "router",
+       "label": "Area 10 branches",
+       "x": 1,
+       "y": 4,
+       "sub": "10.10.0.0/16"
+      },
+      {
+       "id": "br20",
+       "kind": "router",
+       "label": "Area 20 branches",
+       "x": 6,
+       "y": 4,
+       "sub": "10.20.0.0/16"
+      }
+     ],
+     "links": [
+      {
+       "a": "c1",
+       "b": "c2"
+      },
+      {
+       "a": "c1",
+       "b": "a11"
+      },
+      {
+       "a": "c1",
+       "b": "a12"
+      },
+      {
+       "a": "c2",
+       "b": "a11"
+      },
+      {
+       "a": "c2",
+       "b": "a12"
+      },
+      {
+       "a": "c1",
+       "b": "a21"
+      },
+      {
+       "a": "c1",
+       "b": "a22"
+      },
+      {
+       "a": "c2",
+       "b": "a21"
+      },
+      {
+       "a": "c2",
+       "b": "a22"
+      },
+      {
+       "a": "a11",
+       "b": "br10",
+       "label": "default only"
+      },
+      {
+       "a": "a12",
+       "b": "br10"
+      },
+      {
+       "a": "a21",
+       "b": "br20"
+      },
+      {
+       "a": "a22",
+       "b": "br20",
+       "label": "default only"
+      }
+     ],
+     "zones": [
+      {
+       "label": "Area 0 (backbone)",
+       "x": 2,
+       "y": 0,
+       "w": 4,
+       "h": 1,
+       "tone": "accent"
+      },
+      {
+       "label": "Area 10: totally stubby",
+       "x": 0,
+       "y": 4,
+       "w": 3,
+       "h": 1
+      },
+      {
+       "label": "Area 20: totally stubby",
+       "x": 5,
+       "y": 4,
+       "w": 3,
+       "h": 1
+      }
+     ],
+     "caption": "Each area has two ABRs at an aggregation point and one contiguous address block. The backbone sees two stable summaries; branches in the totally stubby areas see only their own area plus a default."
     },
     {
      "type": "cli",
@@ -4254,6 +6353,17 @@ TRACK.modules.push({
      "prompt": "Where are the flooding-domain boundaries in your network today? Do they coincide with the address blocks, or does summarisation fight the topology?"
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Hierarchy contains flooding, state and failure: draw boundaries where topology and addresses aggregate",
+      "Give each area or level a contiguous block and at least two border routers",
+      "Use totally stubby areas for single-exit branches and NSSA where local externals must enter",
+      "Hidden detail can cost the best exit; leak specific prefixes where optimal paths matter",
+      "Stay flat until churn, failure containment or device limits justify hierarchy"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -4319,7 +6429,7 @@ TRACK.modules.push({
    "id": "m4-l3",
    "title": "Summarisation and Redistribution Design",
    "subtitle": "Hide detail deliberately and move routes between domains without loops",
-   "minutes": 35,
+   "minutes": 38,
    "objectives": [
     "Decide where and what to summarise, and what must never be summarised",
     "Explain the black-hole and suboptimal-routing side effects of summarisation",
@@ -4422,6 +6532,85 @@ TRACK.modules.push({
      "kind": "example",
      "text": "Domain A and domain B are joined by routers R1 and R2, both redistributing in both directions. A route from A enters B at R1; R2 learns it from B and, because the protocol in B has a better administrative preference on R2 than the original A route, R2 prefers the B-learned copy and redistributes it back into A. Traffic can now circle between the domains, or the route can persist after the original disappears. Tagging at R1 and denying that tag at R2 breaks the cycle.",
      "title": "How a two-point redistribution loop forms"
+    },
+    {
+     "type": "topology",
+     "title": "Two-point mutual redistribution and the tag that stops a loop",
+     "nodes": [
+      {
+       "id": "ops",
+       "kind": "router",
+       "label": "Port ops OSPF",
+       "x": 0,
+       "y": 2,
+       "sub": "Crane, gate systems"
+      },
+      {
+       "id": "r1",
+       "kind": "router",
+       "label": "R1",
+       "x": 3.5,
+       "y": 0.5,
+       "sub": "Redistributes both ways"
+      },
+      {
+       "id": "r2",
+       "kind": "router",
+       "label": "R2",
+       "x": 3.5,
+       "y": 3.5,
+       "sub": "Redistributes both ways"
+      },
+      {
+       "id": "corp",
+       "kind": "router",
+       "label": "Corporate IS-IS",
+       "x": 7,
+       "y": 2,
+       "sub": "Level 2"
+      }
+     ],
+     "links": [
+      {
+       "a": "ops",
+       "b": "r1",
+       "label": "OSPF"
+      },
+      {
+       "a": "r1",
+       "b": "corp",
+       "label": "set tag 100"
+      },
+      {
+       "a": "corp",
+       "b": "r2",
+       "label": "IS-IS"
+      },
+      {
+       "a": "r2",
+       "b": "ops",
+       "label": "deny tag 100",
+       "style": "dashed"
+      }
+     ],
+     "zones": [
+      {
+       "label": "OSPF domain",
+       "x": 0,
+       "y": 1,
+       "w": 1,
+       "h": 3
+      },
+      {
+       "label": "IS-IS domain",
+       "x": 7,
+       "y": 1,
+       "w": 1,
+       "h": 3,
+       "tone": "accent"
+      }
+     ],
+     "caption": "R1 tags port-operations routes 100 as they enter IS-IS; R2 refuses to send tag-100 routes back into OSPF, and the reverse applies to corporate routes tagged 200. Without the tags, a route can leave through R1 and re-enter through R2."
     },
     {
      "type": "cli",
@@ -4529,6 +6718,16 @@ TRACK.modules.push({
      "prompt": "Identify every redistribution point in a network you know. For each, could you prove that a route cannot re-enter the domain it came from? What would you add to make that provable?"
     },
     {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Summaries hide detail on purpose — and can attract traffic for failed components",
+      "Keep next-hop and tunnel-endpoint loopbacks in a dedicated, unsummarised block",
+      "Each summarising router must keep full reachability to the components it advertises",
+      "Avoid redistribution where a default or summary will do; otherwise filter, tag and block re-entry at every point"
+     ]
+    },
+    {
      "type": "quiz",
      "items": [
       {
@@ -4594,7 +6793,7 @@ TRACK.modules.push({
    "id": "m4-l4",
    "title": "BGP in the Enterprise, Route Reflection and Convergence",
    "subtitle": "Use BGP where it earns its place, scale it, and design for fast recovery",
-   "minutes": 40,
+   "minutes": 43,
    "objectives": [
     "Decide when an enterprise needs BGP internally and where it belongs",
     "Design redundant route reflection and avoid hidden-path problems",
@@ -4720,6 +6919,138 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "topology",
+     "title": "Hierarchical route reflection with off-path reflectors",
+     "nodes": [
+      {
+       "id": "t1",
+       "kind": "server",
+       "label": "Top RR-1",
+       "x": 2,
+       "y": 0,
+       "sub": "Off-path"
+      },
+      {
+       "id": "t2",
+       "kind": "server",
+       "label": "Top RR-2",
+       "x": 5,
+       "y": 0,
+       "sub": "Off-path"
+      },
+      {
+       "id": "ra1",
+       "kind": "server",
+       "label": "Region A RR-1",
+       "x": 0,
+       "y": 2
+      },
+      {
+       "id": "ra2",
+       "kind": "server",
+       "label": "Region A RR-2",
+       "x": 2,
+       "y": 2
+      },
+      {
+       "id": "rb1",
+       "kind": "server",
+       "label": "Region B RR-1",
+       "x": 5,
+       "y": 2
+      },
+      {
+       "id": "rb2",
+       "kind": "server",
+       "label": "Region B RR-2",
+       "x": 7,
+       "y": 2
+      },
+      {
+       "id": "ca",
+       "kind": "router",
+       "label": "Region A clients",
+       "x": 1,
+       "y": 4,
+       "sub": "ADD-PATH receive"
+      },
+      {
+       "id": "cb",
+       "kind": "router",
+       "label": "Region B clients",
+       "x": 6,
+       "y": 4,
+       "sub": "ADD-PATH receive"
+      }
+     ],
+     "links": [
+      {
+       "a": "t1",
+       "b": "t2",
+       "label": "iBGP"
+      },
+      {
+       "a": "t1",
+       "b": "ra1"
+      },
+      {
+       "a": "t1",
+       "b": "ra2"
+      },
+      {
+       "a": "t2",
+       "b": "ra1"
+      },
+      {
+       "a": "t2",
+       "b": "ra2"
+      },
+      {
+       "a": "t1",
+       "b": "rb1"
+      },
+      {
+       "a": "t1",
+       "b": "rb2"
+      },
+      {
+       "a": "t2",
+       "b": "rb1"
+      },
+      {
+       "a": "t2",
+       "b": "rb2"
+      },
+      {
+       "a": "ra1",
+       "b": "ca"
+      },
+      {
+       "a": "ra2",
+       "b": "ca"
+      },
+      {
+       "a": "rb1",
+       "b": "cb"
+      },
+      {
+       "a": "rb2",
+       "b": "cb"
+      }
+     ],
+     "zones": [
+      {
+       "label": "Control plane only",
+       "x": 0,
+       "y": 0,
+       "w": 8,
+       "h": 3,
+       "tone": "accent"
+      }
+     ],
+     "caption": "Regional reflector pairs serve their clients and are themselves clients of a top-level pair. Every client peers with two reflectors in different failure domains, and ADD-PATH gives clients a backup path for each internet exit."
+    },
+    {
      "type": "callout",
      "kind": "warning",
      "text": "If two exits exist for a prefix but the reflector sends clients only its single best path, clients have no backup: when that exit fails they must wait for the reflector to compute and send a new path. They also cannot load-share. Advertising more than one path, or ensuring each exit uses a distinguishable route, restores diversity — at the cost of more memory and updates.",
@@ -4752,6 +7083,38 @@ TRACK.modules.push({
      ]
     },
     {
+     "type": "timeline",
+     "title": "What happens after a protected link fails",
+     "items": [
+      {
+       "when": "0 ms",
+       "label": "Link fails",
+       "text": "Far end stops answering; the local port may stay up"
+      },
+      {
+       "when": "≈150 ms",
+       "label": "BFD declares the neighbour down",
+       "text": "Three missed packets at 50 ms"
+      },
+      {
+       "when": "≈160 ms",
+       "label": "Local switch to the backup next hop",
+       "text": "Pre-installed alternate; traffic flows again"
+      },
+      {
+       "when": "≈200–500 ms",
+       "label": "Flooding and SPF elsewhere",
+       "text": "Other routers learn and recompute"
+      },
+      {
+       "when": "< 1 s",
+       "label": "FIB updated across the domain",
+       "text": "Post-convergence paths installed"
+      }
+     ],
+     "caption": "Illustrative timings for a link protected by BFD (50 ms × 3) and a pre-installed loop-free alternate. Traffic loss ends at the local switchover; the network-wide steps that follow only tidy up the forwarding paths."
+    },
+    {
      "type": "formula",
      "title": "Convergence budget",
      "items": [
@@ -4775,7 +7138,7 @@ TRACK.modules.push({
     {
      "type": "callout",
      "kind": "pro",
-     "text": "\"Fast convergence\" is not a requirement. \"Voice calls survive any single link failure without dropping\" is. Translate application tolerance into a budget — for example under 1 s for voice, under 50 ms for some industrial or trading flows — and spend design effort only where the budget is tight: BFD for detection, fast reroute for protection, tuned throttles for computation.",
+     "text": "\"Fast convergence\" is not a requirement. \"Voice calls survive any single link failure without dropping\" is. Translate application tolerance into a budget — for example under 1 s for voice, under 50 ms for some industrial or trading flows — and spend design effort only where the budget is tight: BFD for detection, fast reroute for protection, tuned throttles for computation. Where the backbone uses segment routing — over MPLS labels (SR-MPLS) or IPv6 (SRv6), increasingly in place of older label-distribution and tunnel-signalling protocols — **TI-LFA** can pre-compute a loop-free backup for almost any topology, closing the coverage gaps of plain LFA; adopt it where a requirement justifies the change and every platform supports it.",
      "title": "Set convergence targets by application"
     },
     {
@@ -4896,6 +7259,17 @@ TRACK.modules.push({
     {
      "type": "reflection",
      "prompt": "Pick one critical application and write its convergence budget. Which component — detection, propagation, computation or installation — is your biggest unknown, and how would you measure it?"
+    },
+    {
+     "type": "keypoints",
+     "title": "Key takeaways",
+     "items": [
+      "Use BGP inside the enterprise where policy, scale or an overlay control plane needs it — not by default",
+      "Route reflectors remove the full mesh; deploy them in pairs across failure domains, often off-path",
+      "Reflectors hide alternative paths: advertise additional paths where fast failover or multipath matters",
+      "Build convergence budgets per application and spend effort on the largest term: BFD, fast reroute or prefix-independent convergence",
+      "Plan growth by finding the resource that runs out first"
+     ]
     },
     {
      "type": "quiz",
@@ -5072,15 +7446,15 @@ TRACK.exam.push([
  },
  {
   "module": "m2",
-  "q": "A clinical building needs sub-second recovery from uplink failures and no spanning-tree loops. Wireless clients are tunnelled to a central controller, and wired devices do not move between floors. Which access design BEST fits?",
+  "q": "A data hall can supply 600 kW to IT equipment. The proposed GPU training cluster needs about 900 kW at full build, and the sponsor wants the full cluster this year. What should the architect do FIRST?",
   "options": [
-   "Layer 2 access with VLANs spanning all floors and rapid spanning tree",
-   "An overlay fabric so every subnet can appear on every floor",
-   "Routed access with layer 3 uplinks, an IGP and BFD",
-   "Layer 2 access with one large VLAN for all clinical devices"
+   "Raise oversubscription in the GPU fabric so that fewer switches draw power",
+   "Swap every 400G optic for a 100G optic to cut the power the fabric draws",
+   "Record power as a hard constraint and agree a phased or smaller build",
+   "Proceed with the full build and assume facilities will add supply later"
   ],
   "answer": 2,
-  "explain": "Routed access gives deterministic, loop-free recovery, and the controller already handles wireless mobility. Spanning VLANs conflict with the no-loop requirement, and a fabric adds complexity for a need that is already met."
+  "explain": "Power and cooling cap what the hall can host, so the gap is a constraint the owners must resolve — by phasing, resizing or funding new supply. Oversubscribing or slowing the fabric damages the workload while saving little, and assuming new supply hides a delivery risk."
  },
  {
   "module": "m2",
